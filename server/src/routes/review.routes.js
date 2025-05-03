@@ -9,7 +9,7 @@ const router = Router();
 
 router.route("/add").post(verifyJWT,addReview);
 router.route("/").get(getAllReviews);
-router.route("/userReview").get(verifyJWT,getReviewByUserId);
+router.route("/userReview/:userId").get(verifyJWT,getReviewByUserId);
 router.route("/:id").get(getReviewByMovieId);
 
 

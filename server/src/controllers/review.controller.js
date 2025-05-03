@@ -8,6 +8,7 @@ import Review from "../model/review.model.js";
 
 
 
+
 const addReview =asyncHandler(async (req, res) => { 
     const {movieId,reviewText,movieTitle,moviePoster,rating,spoiler,userId} = req.body;
     console.log("movieId",movieId);
@@ -49,8 +50,10 @@ const getAllReviews = asyncHandler(async (req, res) => {
 })
 
 const getReviewByUserId = asyncHandler(async (req, res) => {
-    console.log("req.user",req.user);
-    const  userId  = req.user._id;
+    // console.log("req.user",req.user);
+    
+    const  {userId}  = req.params;
+    console.log("userId",userId);
 
     console.log("userId",userId);
     const review = await Review.find({userId:userId})

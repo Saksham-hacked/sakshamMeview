@@ -27,7 +27,7 @@ import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 import SearchBar from './SearchBar';
 
-export default function ProfilePage() {
+export default function ProfilePage({currUser}) {
   const [activeTab, setActiveTab] = useState("reviews");
   const [userData,setUserData] = useState(null);
   const [movieData,setMovieData] = useState(null);
@@ -38,6 +38,7 @@ export default function ProfilePage() {
   const [review, setReview] = useState('');
   const [spoiler, setSpoiler] = useState(false);
   const [userReviews, setUserReviews] = useState([]);
+  
   
 
     useEffect(() => {
@@ -57,6 +58,7 @@ export default function ProfilePage() {
             const data = await response.json();
             console.log(data);
             setUserData(data.data);
+            console.log("userData",userData);
         } catch (error) {
             console.error('Error fetching user data:', error);
         }
@@ -85,36 +87,44 @@ export default function ProfilePage() {
   };
 
    //fetching user reviews
-   const getUserReviews = async () => {
-    try {
-      const response = await fetch(`http://${envApi}/review/userReview`, {
-        method: 'GET',
-        credentials: 'include',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-      });
-      if (!response.ok) {
-        throw new Error('Network response was not ok');
-      }
-      const data = await response.json();
-      console.log('User reviews:', data);
-
-      setUserReviews(data.data); 
-
-      
-    } catch (error) {
-      console.error('Error fetching user reviews:', error);
-    }
-  };
+  
     
   
   
   
-     getUserReviews();
-     fetchMovies();
-     fetchUserData();
+  fetchUserData();
+  // console.log("userData  in useffect",userData);
+  fetchMovies();
+  
     }, []);
+
+    useEffect(() => {
+      const getUserReviews = async () => {
+        try {
+          const response = await fetch(`http://${envApi}/review/userReview/${userData._id}`, {
+            method: 'GET',
+            credentials: 'include',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+          });
+          if (!response.ok) {
+            throw new Error('Network response was not ok');
+          }
+          const data = await response.json();
+          console.log('User reviews:', data);
+    
+          setUserReviews(data.data); 
+    
+          
+        } catch (error) {
+          console.error('Error fetching user reviews:', error);
+        }
+      };
+      if (userData) {
+        getUserReviews();
+      }
+    }, [userData]);
 
     if (!userData) {
     return <div>Loading...</div>;
@@ -231,7 +241,7 @@ export default function ProfilePage() {
 
   return (
     <div className="min-h-screen bg-[#121212] text-white">
-      <Navbar />
+      <Navbar currUser={currUser} />
       <div className="container mx-auto px-4 pt-24 pb-32">
         {/* Profile Header */}
         <div className="mb-8 flex flex-col md:flex-row items-center gap-6">

@@ -249,6 +249,7 @@ const userSearch = asyncHandler(async (req,res)=>{
 
 const followUser = asyncHandler(async (req, res) => {
     const currentUserId = req.user._id; // Logged-in user
+
     const { targetUserId } = req.body;  // User to follow
   
     if (currentUserId.toString() === targetUserId) {
@@ -274,7 +275,7 @@ const followUser = asyncHandler(async (req, res) => {
     await targetUser.save();
   
     return res.status(200).json(
-      new ApiResponse(200, "Followed user successfully")
+      new ApiResponse(200, "Followed user successfully", targetUser)
     );
   });
 

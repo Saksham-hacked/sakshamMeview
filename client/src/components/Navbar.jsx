@@ -3,13 +3,50 @@ import { Film, Search, Star, Ticket, User, Popcorn, Clapperboard } from 'lucide-
 import { Button } from "@/components/ui/button"
 import SearchBar from "./SearchBar"
 import { Navigate, useNavigate } from 'react-router-dom';
+import { envApi } from './getEnvironment';
+import { useEffect } from 'react';
+import { useState } from 'react';
+// import { checkLoginStatus } from '@/utils/checklogin';
 
 
 
 
 
-const Navbar = () => {
+const Navbar = ({currUser}) => {
   const navigate = useNavigate();
+  const [isLoggedIn, setIsLoggedIn] = React.useState(false);
+  useEffect(() => {
+    if (currUser) {
+      setIsLoggedIn(true);
+    }
+    else {
+      setIsLoggedIn(false);
+    }
+  }, [currUser]);
+
+  const handleLogout = async () => {
+    try {
+      const response = await fetch(`http://${envApi}/user/logout`, {
+        method: 'POST',
+        credentials: 'include',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+      if (!response.ok) {
+        throw new Error('Network response was not ok');
+      }
+      const data = await response.json();
+      console.log(data);
+      setIsLoggedIn(false);
+      navigate("/user/signin");
+    } catch (error) {
+      console.error('Error logging out:', error);
+    }
+  };
+  
+  
+  
   return (
     <nav className="fixed w-full z-50 bg-black/70 backdrop-blur-md text-white">
       <div className="container mx-auto px-4 py-4 flex justify-between items-center">
@@ -31,7 +68,7 @@ const Navbar = () => {
             <span>features</span>
           </a>
           
-          <a href="#testimonials" className="text-crate-cream/80 hover:text-cream transition-colors flex items-center">
+          <a href="/user/community" className="text-crate-cream/80 hover:text-cream transition-colors flex items-center">
             <Popcorn className="h-4 w-4 mr-1 text-yellow-400" />
             <span>Community</span>
           </a>
@@ -41,11 +78,26 @@ const Navbar = () => {
               <Search className="h-5 w-5" />
               
             </Button>
-            
-            <Button onClick={() => {navigate("/user/signin")}} className="vintage-button bg-yellow-600 hover:bg-yellow-700 flex items-center">
+            {isLoggedIn ? (
+              <>
+              <Button onClick={() => {navigate("/user/profile")}} className="vintage-button bg-yellow-600 hover:bg-yellow-700 flex items-center">
+                <User className="h-4 w-4 mr-2" />
+                {/* <span>Profile</span> */}
+              </Button>
+              <Button onClick={handleLogout} className="vintage-button bg-yellow-600 hover:bg-yellow-700 flex items-center">
+                {/* <User className="h-4 w-4 mr-2" /> */}
+                <span>logout</span>
+              </Button></>
+            ) : (
+              <Button onClick={() => {navigate("/user/signin")}} className="vintage-button bg-yellow-600 hover:bg-yellow-700 flex items-center">
+                <User className="h-4 w-4 mr-2" />
+                <span>Sign in</span>
+              </Button>
+            )}
+            {/* <Button onClick={() => {navigate("/user/signin")}} className="vintage-button bg-yellow-600 hover:bg-yellow-700 flex items-center">
               <User className="h-4 w-4 mr-2" />
               <span>Sign In</span>
-            </Button>
+            </Button> */}
           </div>
         </div>
         

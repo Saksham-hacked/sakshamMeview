@@ -6,7 +6,9 @@ import { Route, Routes , Router } from 'react-router-dom'
 import ProfilePage from './components/ProfilePage'
 import CommunityPage from './components/CommunityPage'
 import UserProfile from './components/UserProfile'
+
 import { envApi } from './components/getEnvironment'
+import MovieReviewsPage from './components/MovieReviewPage'
 
 
 
@@ -47,12 +49,13 @@ const App = () => {
 
    <Routes>
     <Route path='/'element={<LandingPage />}></Route>
+    <Route path='review' element ={<MovieReviewsPage/>}></Route>
+    <Route path='community' element={<CommunityPage />}></Route>
     <Route path='/user'>
         <Route path='signin' element={<SigninPage />}></Route>
         <Route path='signup' element={<SignupPage />}></Route>
         <Route path='profile' element={<ProfilePage  currUser={currUser} />}></Route>
         <Route path='profile/:username' element={<UserProfile currUser={currUser} />}></Route>
-        <Route path='community' element={<CommunityPage />}></Route>
     </Route>
    </Routes>
    

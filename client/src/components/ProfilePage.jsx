@@ -1,105 +1,65 @@
-import React, { useState,useEffect } from 'react';
-// import { envApi } from './getEnvironment';
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Dialog, DialogContent, DialogHeader } from "@/components/ui/dialog";
-import { Input } from "@/components/ui/input";
-import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
-import { Textarea } from "@/components/ui/textarea";
-import { Button } from "@/components/ui/button";
-import { Label } from "@/components/ui/label";
-import { envApi } from './getEnvironment';
+import React, { useState, useEffect } from 'react';
 import {
   Star,
   User as UserIcon,
   List,
   Plus,
-  
-  Ticket,
-  
   Edit,
- 
-  ArrowRight,
-  Clapperboard,
-  Camera,
+  X, // Added X icon for removing movies
 } from 'lucide-react';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 import SearchBar from './SearchBar';
+import { envApi } from './getEnvironment';
 
-export default function ProfilePage({currUser}) {
+export default function ProfilePage({ currUser }) {
   const [activeTab, setActiveTab] = useState("reviews");
-  const [userData,setUserData] = useState(null);
-  const [movieData,setMovieData] = useState(null);
+  const [userData, setUserData] = useState(null);
   const [reviewDialogDisplay, setReviewDialogDisplay] = useState(false);
+  const [createListDialogDisplay, setCreateListDialogDisplay] = useState(false); // State for Create List dialog
   const [selectedMovie, setSelectedMovie] = useState(null);
-
-  const [rating, setRating] = useState(null);
+  const [rating, setRating] = useState('');
   const [review, setReview] = useState('');
   const [spoiler, setSpoiler] = useState(false);
   const [userReviews, setUserReviews] = useState([]);
+  const [loading, setLoading] = useState(true);
   
-  
+  // States for creating a new list
+  const [listTitle, setListTitle] = useState('');
+  const [listMovies, setListMovies] = useState([]);
+  const [userLists, setUserLists] = useState([]);
 
-    useEffect(() => {
-    // Fetch user data from the server (replace with your API call)
+
+
+  // Fetch user data from the API
+  useEffect(() => {
     const fetchUserData = async () => {
-        try {
-            const response = await fetch(`http://${envApi}/user/`,{
-                method: 'GET',
-                credentials: 'include',
-                headers: {
-                'Content-Type': 'application/json',
-                },
-            }); // Adjust the endpoint as needed
-            if (!response.ok) {
-            throw new Error('Network response was not ok');
-            }
-            const data = await response.json();
-            console.log(data);
-            setUserData(data.data);
-            console.log("userData",userData);
-        } catch (error) {
-            console.error('Error fetching user data:', error);
-        }
-    };
-    const fetchMovies = async () => {
       try {
-        const apiKey = '952fd5ce73dcd68d8702dc0aa5fcc3cb';
-        const url = `https://api.themoviedb.org/3/discover/movie?api_key=${apiKey}&language=en-US&with_original_language=hi&with_genres=53&region=IN&release_date.gte=2020-01-01&vote_average.gte=7&sort_by=popularity.desc
-`;
-        
-        fetch(url)
-          .then(response => response.json())
-          .then(data => {
-            console.log("movie data",data);
-            setMovieData(data);
-            // data.results contains an array of movie objects.
-            // Use these to populate your movie review platform.
-          }).catch(error => {
-            console.error('Error fetching movies:', error);
-          });
-          
-        
+        const response = await fetch(`http://${envApi}/user/`, {
+          method: 'GET',
+          credentials: 'include',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+        });
+        if (!response.ok) {
+          throw new Error('Network response was not ok');
+        }
+        const data = await response.json();
+        setUserData(data.data);
       } catch (error) {
-          console.error('Error fetching movies data:', error);
+        console.error('Error fetching user data:', error);
+      } finally {
+        setLoading(false);
       }
-  };
+    };
+    fetchUserData();
+  }, []);
 
-   //fetching user reviews
-  
-    
-  
-  
-  
-  fetchUserData();
-  // console.log("userData  in useffect",userData);
-  fetchMovies();
-  
-    }, []);
-
-    useEffect(() => {
-      const getUserReviews = async () => {
+  // Fetch user reviews when userData is available
+  useEffect(() => {
+    const getUserReviews = async () => {
+      if (userData) {
         try {
           const response = await fetch(`http://${envApi}/review/userReview/${userData._id}`, {
             method: 'GET',
@@ -112,344 +72,341 @@ export default function ProfilePage({currUser}) {
             throw new Error('Network response was not ok');
           }
           const data = await response.json();
-          console.log('User reviews:', data);
-    
-          setUserReviews(data.data); 
-    
-          
+          setUserReviews(data.data);
         } catch (error) {
           console.error('Error fetching user reviews:', error);
         }
-      };
+      }
+    };
+    getUserReviews();
+  }, [userData]);
+
+  // Fetch user top lists when userData is available
+  useEffect(() => {
+    const getUserLists = async () => {
       if (userData) {
-        getUserReviews();
-      }
-    }, [userData]);
-
-    if (!userData) {
-    return <div>Loading...</div>;
-    }
-
-    console.log("hello world",userData);
-
-
-    const handleReviewSubmit = async () => {
-      try {
-        const response = await fetch(`http://${envApi}/review/add`, {
-          method: 'POST',
-          credentials: 'include',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            movieId: selectedMovie.id,
-            rating: rating,
-            userId: userData._id,
-            reviewText: review,
-            spoiler,
-            movieTitle: selectedMovie.title,
-            moviePoster: selectedMovie.poster_path,
-          }),
-        });
-
-        if (!response.ok) {
-          throw new Error('Network response was not ok');
-        }
-
-        const data = await response.json();
-        console.log('Review submitted:', data);
-        // Reset the form fields
-        setRating(null);
-        setReview('');
-        setSpoiler(false);
-        setSelectedMovie(null);
-
-
-        setReviewDialogDisplay(false);
-        alert("Review submitted successfully!");
-        window.location.reload();
-      } catch (error) {
-        console.error('Error submitting review:', error);
-      }
-    }
-
-
-    async  function  getMovieById(id){
-      try {
-          const response = await fetch(`https://api.themoviedb.org/3/movie/${id}?api_key=952fd5ce73dcd68d8702dc0aa5fcc3cb`);
+        try {
+          const response = await fetch(`http://${envApi}/topfive/user/${userData._id}`, {
+            method: 'GET',   
+            credentials: 'include',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+          });
+          if (!response.ok) {
+            throw new Error('Network response was not ok');
+          }
           const data = await response.json();
-          setSelectedMovie(data);
-          setOpen(false);
-          // setQuery('');
-          setSuggestions([]);
-      } catch (error) {
-          console.error('Error fetching movie details:', error);
+          console.log('User Lists:', data);
+          setUserLists(data.data);
+        } catch (error) {
+          console.error('Error fetching user lists:', error);
+        }
       }
+    };
+    getUserLists();
+  }, [userData]);
+
+  // Function to handle review submission
+
+  const handleReviewSubmit = async () => {
+    if (!selectedMovie || !rating || !review) {
+      alert("Please select a movie, a rating, and write a review.");
+      return;
     }
 
+    try {
+      const response = await fetch(`http://${envApi}/review/add`, {
+        method: 'POST',
+        credentials: 'include',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          movieId: selectedMovie.id,
+          rating: rating,
+          userId: userData._id,
+          reviewText: review,
+          spoiler,
+          movieTitle: selectedMovie.title,
+          moviePoster: selectedMovie.poster_path,
+        }),
+      });
 
-    
-
-   
-
-    
-        
-
-        
-  
-
-
-
-  // Mock data
-  const user = {
-    username: "FilmFanatic22",
-    avatar: null,
-    stats: { reviews: 42, followers: 156, following: 89 },
+      if (!response.ok) {
+        throw new Error('Network response was not ok');
+      }
+      setRating('');
+      setReview('');
+      setSpoiler(false);
+      setSelectedMovie(null);
+      setReviewDialogDisplay(false);
+      alert("Review submitted successfully!");
+    } catch (error) {
+      console.error('Error submitting review:', error);
+      alert("Failed to submit review.");
+    }
   };
-  const topLists = [
-    { id: 1, title: "Best Sci‑Fi Films", posters: Array(5).fill("/placeholder.svg") },
-    { id: 2, title: "Classic Noir Movies", posters: Array(5).fill("/placeholder.svg") },
-    { id: 3, title: "Favorite Comedies", posters: Array(5).fill("/placeholder.svg") },
-  ];
-  
-  const connections = {
-    followers: Array(8).fill({ username: "MovieBuff" }),
-    following: Array(8).fill({ username: "CinemaExpert" }),
+
+  // Function to add a selected movie to the list
+  const handleAddMovieToList = (movie) => {
+    if (movie) {
+      // Check if the movie is already in the list to avoid duplicates
+      const isDuplicate = listMovies.some(item => item.movieId === movie.id);
+      if(listMovies.length >= 5) {
+        alert("You cannot add more than 5 movies to your list.");
+        return;
+      }
+      if (!isDuplicate) {
+        setListMovies(prevMovies => [
+          ...prevMovies,
+          {
+            movieId: movie.id,
+            movieTitle: movie.title,
+            moviePoster: movie.poster_path,
+          },
+        ]);
+      } else {
+        alert("This movie is already in your list.");
+      }
+    }
   };
 
-  const handleAvatarUpload = e => console.log("Upload:", e.target.files[0]);
+  // Function to remove a movie from the list
+  const handleRemoveMovie = (movieId) => {
+    setListMovies(prevMovies => prevMovies.filter(movie => movie.movieId !== movieId));
+  };
+  
+  // Function to handle list creation submission
+  const handleCreateListSubmit = async () => {
+    if (!listTitle.trim()) {
+      alert("Please enter a title for your list.");
+      return;
+    }
+    if (listMovies.length === 0) {
+      alert("Please add at least one movie to your list.");
+      return;
+    }
+
+    try {
+      const response = await fetch(`http://${envApi}/topfive/create`, {
+        method: 'POST',
+        credentials: 'include',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          userId: userData._id,
+          title: listTitle,
+          movies: listMovies,
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error('Network response was not ok');
+      }
+      const data = await response.json();
+      console.log('List submitted successfully:', data);
+      
+      // Close the dialog and reset state
+      setCreateListDialogDisplay(false);
+      setListTitle('');
+      setListMovies([]);
+      alert("List created successfully!");
+    } catch (error) {
+      console.error('Error submitting list:', error);
+      alert("Failed to create list.");
+    }
+  };
 
   const renderStars = (rating) => {
-    // Normalize the rating to a 5-star scale
     const starsOutOfFive = rating / 2;
     const full = Math.floor(starsOutOfFive);
     const half = starsOutOfFive % 1 !== 0;
+
+    const stars = [];
+    for (let i = 0; i < full; i++) {
+      stars.push(<Star key={`full-${i}`} className="w-4 h-4 fill-yellow-400 text-yellow-400" />);
+    }
+    if (half) {
+      stars.push(<Star key="half" className="w-4 h-4 text-yellow-400 fill-yellow-400/50" />);
+    }
+    for (let i = 0; i < 5 - full - (half ? 1 : 0); i++) {
+      stars.push(<Star key={`empty-${i}`} className="w-4 h-4 text-slate-700 fill-slate-700" />);
+    }
+    return <div className="flex">{stars}</div>;
+  };
+
   
+
+  if (loading || !userData) {
     return (
-      <div className="flex">
-        {[...Array(full)].map((_, i) => (
-          <Star key={`full-${i}`} className="w-4 h-4 fill-yellow-200 text-yellow-200" />
-        ))}
-        {half && <Star key="half" className="w-4 h-4 text-yellow-200 fill-yellow-200/50" />}
-        {[...Array(5 - full - (half ? 1 : 0))].map((_, i) => (
-          <Star key={`empty-${i}`} className="w-4 h-4 text-black fill-black " />
-        ))}
+      <div className="min-h-screen flex items-center justify-center bg-[#121212] text-white">
+        <div>Loading...</div>
       </div>
     );
-  };
-  
+  }
 
   return (
-    <div className="min-h-screen bg-[#121212] text-white">
+    <div className="min-h-screen bg-[#121212] text-white font-sans">
       <Navbar currUser={currUser} />
-      <div className="container mx-auto px-4 pt-24 pb-32">
+      
+
+      <div className="container mx-auto px-4  py-8 md:py-12 lg:px-8 max-w-7xl ">
+
         {/* Profile Header */}
-        <div className="mb-8 flex flex-col md:flex-row items-center gap-6">
-          <div className="relative group">
-            <Avatar className="w-28 h-28 border-2 border-black">
-              <AvatarImage src={userData.profilePic} alt={user.username} />
-              <AvatarFallback className="bg-crate-dark text-crate-gold text-2xl">
-                {userData.username}
-              </AvatarFallback>
-            </Avatar>
-            
+        <div className="flex flex-col md:flex-row mt-20 items-center md:items-start gap-8 mb-12 border-b border-gray-800 pb-8">
+          {/* Avatar */}
+          <div className="w-28 h-28 lg:w-40 lg:h-40 rounded-full border-2 border-yellow-400/50 flex-shrink-0 overflow-hidden flex items-center justify-center bg-zinc-800 text-yellow-400 text-3xl">
+            {userData.profilePic ? (
+              <img src={userData.profilePic} alt={userData.username} className="w-full h-full object-cover" />
+            ) : (
+              <span>{userData.username.charAt(0).toUpperCase()}</span>
+            )}
           </div>
           <div className="flex-1 text-center md:text-left">
-            <div className="flex flex-col md:flex-row md:items-center gap-4 mb-4">
-              <h1 className="text-3xl font-bold">{userData.username}</h1>
-             
-            </div>
-            <div className="flex justify-center md:justify-start space-x-6">
+            <h1 className="text-4xl lg:text-5xl font-bold mb-2 tracking-wide text-yellow-400">{userData.username}</h1>
+            <p className="text-md text-gray-400 mb-6">Welcome back, {userData.username}!</p>
+            <div className="flex justify-center md:justify-start space-x-8">
               <div className="text-center">
-                <p className="text-xl font-semibold">{userReviews.length}</p>
-                <p className="text-sm text-[#E0E0E0]/60">Reviews</p>
+                <p className="text-2xl font-bold text-yellow-400">{userReviews.length}</p>
+                <p className="text-sm text-gray-500">Reviews</p>
               </div>
               <div className="text-center">
-                <p className="text-xl font-semibold">{userData.followers.length}</p>
-                <p className="text-sm text-[#E0E0E0]/60">Followers</p>
+                <p className="text-2xl font-bold text-yellow-400">{userData.followers.length}</p>
+                <p className="text-sm text-gray-500">Followers</p>
               </div>
               <div className="text-center">
-                <p className="text-xl font-semibold">{userData.following.length}</p>
-                <p className="text-sm text-[#E0E0E0]/60">Following</p>
+                <p className="text-2xl font-bold text-yellow-400">{userData.following.length}</p>
+                <p className="text-sm text-gray-500">Following</p>
               </div>
             </div>
-          </div>
-          <div>
-            <Button onClick={() => setReviewDialogDisplay(true)} className="bg-crate-gold text-white hover:bg-yellow-500/90 flex items-center">
-              <Edit className="mr-2 h-4 w-4" /> write a review
-            </Button>
-          </div>
-        </div>
-
-        {reviewDialogDisplay && (
-  <div className="fixed inset-0 flex  items-center justify-center bg-black/70 z-50">
-    <Dialog open={reviewDialogDisplay} onOpenChange={setReviewDialogDisplay}>
-      <DialogContent>
-        <DialogHeader>Write a Review</DialogHeader>
-        <div className="mb-4 flex flex-col gap-4 ">
-          <Label htmlFor="movie" className="text-crate-cream">Movie</Label>
-          <SearchBar  setSelectedMovie={setSelectedMovie} />
-          {console.log("selected movie",selectedMovie)}
-        </div>
-        <div className="mb-4 flex flex-col gap-4">
-          <Label htmlFor="rating" className="text-crate-cream">Rating</Label>
-          <div className="relative">
-            <Star className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-crate-gold" />
-            <Input
-              onChange={e => setRating(e.target.value)}
-              
-              
-              value={rating}
-              id="rating"
-              type="number"
-              min="0"
-              max="10"
-              step="1"
-              placeholder="Enter rating (0-10)"
-              className="pl-10 bg-crate-darker border-crate-gold/20 text-crate-cream"
-              required
-            />
+            <div className="mt-8 flex justify-center md:justify-start">
+              <button onClick={() => setReviewDialogDisplay(true)} className="bg-yellow-400 text-black font-semibold hover:bg-yellow-500 transition-colors rounded-full px-6 py-3 shadow-lg flex items-center">
+                <Edit className="mr-2 h-4 w-4" /> Write a Review
+              </button>
+            </div>
           </div>
         </div>
-        <div className="mb-4 flex flex-col gap-4">
-          <Label htmlFor="review" className="text-crate-cream">Review</Label> 
-          <div className="relative">
-            {/* <Chat className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-crate-gold" /> */}
-            <Textarea
-              onChange={e =>{ 
-                
-                setReview(e.target.value)}}
-              value={review}
-              id="review"
-              placeholder="Enter your review"
-              className="pl-10 bg-crate-darker border-crate-gold/20 text-crate-cream"
-              rows="4"
-              required
-            />
-          </div>
-        </div>
-        <div className="mb-4 flex flex-col gap-4">
-          <Label htmlFor="spoiler" className="text-crate-cream">Spoiler Alert</Label>
-          <div className="relative">
-            <input
-              onChange={e => setSpoiler(e.target.checked)}
-              id="spoiler"
-              type="checkbox" 
-              className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-crate-gold"
-            />
-            
-          </div>
-        </div>
-        <div className="flex justify-end">
-          <Button onClick={() => setReviewDialogDisplay(false)} className="bg-yellow-400 text-white hover:bg-yellow-500/90 flex items-center">
-            Cancel
-          </Button>
-          <Button onClick={handleReviewSubmit} className="bg-yellow-400 text-white hover:bg-yellow-500/90 flex items-center ml-2">
-            <Plus className="mr-2 h-4 w-4" /> Submit Review
-          </Button>
-        </div>
-      </DialogContent>
-    </Dialog>
-  </div>
-)}
-        
 
         {/* Top Lists */}
-        <Card className="bg-[#1A1A1A] border-crate-gold/20 mb-8">
-          <CardHeader>
-            <CardTitle className="text-xl flex items-center">
-              <List className="mr-2 h-5 w-5 text-crate-gold" /> Your Top 5 Lists
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {topLists.map(list => (
-                <div key={list.id} className="bg-[#242424] rounded-lg overflow-hidden hover:ring-1 hover:ring-crate-gold/50 transition">
-                  <div className="grid grid-cols-5 gap-0.5">
-                    {list.posters.map((p,i)=><img key={i} src={p} className="w-full aspect-[2/3] object-cover" />)}
-                  </div>
-                  <div className="p-3">
-                    <h3 className="font-medium truncate">{list.title}</h3>
-                  </div>
-                </div>
-              ))}
-              <div className="bg-[#242424] rounded-lg border-dashed border-[#E0E0E0]/30 flex items-center justify-center h-48 hover:border-crate-gold/50 transition cursor-pointer">
-                <Plus className="h-8 w-8 text-crate-gold mb-2" />
-                <p className="text-[#E0E0E0]/80">Create New List</p>
-              </div>
+        <section className="mb-12">
+          <div className="bg-zinc-900 border border-yellow-400/20 shadow-xl rounded-2xl">
+            <div className="p-6 border-b border-gray-800">
+              <h2 className="text-2xl font-bold flex items-center text-yellow-400">
+                <List className="mr-2 h-6 w-6" /> Your Top Lists
+              </h2>
             </div>
-          </CardContent>
-        </Card>
-
-        {/* Reviews & Connections Tabs */}
-        <Tabs value={activeTab} onValueChange={setActiveTab} className="mb-8">
-          <TabsList className="grid grid-cols-2 bg-[#1E1E1E]">
-            <TabsTrigger
-              value="reviews"
-              className="data-[state=active]:bg-crate-gold/20 data-[state=active]:text-crate-gold"
-            >
-              <Star className="mr-2 h-4 w-4" /> Reviews
-            </TabsTrigger>
-            <TabsTrigger
-              value="connections"
-              className="data-[state=active]:bg-crate-gold/20 data-[state=active]:text-crate-gold"
-            >
-              <UserIcon className="mr-2 h-4 w-4" /> Connections
-            </TabsTrigger>
-          </TabsList>
-
-          <TabsContent value="reviews">
-            <Card className="bg-[#1A1A1A] border-crate-gold/20 mb-8">
-              <CardHeader className="flex justify-between items-center">
-                <CardTitle className="text-xl flex items-center">
-                  <Star className="mr-2 h-5 w-5 text-crate-gold" /> Your Reviews
-                </CardTitle>
-                <Button onClick={() => setReviewDialogDisplay(true)} className="bg-crate-gold text-black hover:bg-crate-gold/90 flex items-center">
-                  <Plus className="mr-2 h-4 w-4" /> Write a Review
-                </Button>
-              </CardHeader>
-              <CardContent className="space-y-6 overflow-y-scroll max-h-[200px] md:max-h-[400px]">
-                {userReviews.map(r=>(
-                  <div key={r.movieId} className="bg-[#242424] rounded-lg p-4 hover:ring-1 hover:ring-crate-gold/30 transition">
-                    <div className="flex flex-col gap-4 md:flex">
-                      <img src={`https://image.tmdb.org/t/p/w92${r.moviePoster}`} alt={r.movieTitle} className="w-16 aspect-[2/3] object-cover rounded" />
-                      <div className="flex-1">
-                        <div className="flex justify-between mb-2">
-                          <h3 className="font-semibold">{r.movieTitle}</h3>
-                          {renderStars(r.rating)}
-                        </div>
-                        <p className="text-[#E0E0E0]/80 text-sm line-clamp-2">{r.reviewText}</p>
-                      </div>
+            <div className="p-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                {userLists?.map(list => (
+                  <div key={list._id} className="group bg-zinc-800 rounded-lg overflow-hidden cursor-pointer hover:ring-2 hover:ring-yellow-400/50 transition-all duration-300">
+                    <div className="grid grid-cols-5 gap-0.5">
+                      {list.movies.map((p, i) => (
+                        <img key={i} src={`https://image.tmdb.org/t/p/w92/${p.moviePoster}`} alt={`Poster ${i}`} className="w-full aspect-[2/3] object-cover" />
+                      ))}
+                    </div>
+                    <div className="p-4">
+                      <h3 className="font-semibold text-lg truncate text-gray-200 group-hover:text-yellow-400 transition-colors">{list.title}</h3>
                     </div>
                   </div>
                 ))}
-              </CardContent>
-            </Card>
-          </TabsContent>
+                {/* Button to open the new list creation dialog */}
+                <div onClick={() => setCreateListDialogDisplay(true)} className="bg-zinc-800 rounded-lg border-2 border-dashed border-gray-700 flex flex-col items-center justify-center min-h-[150px] md:h-full cursor-pointer hover:border-yellow-400/70 transition-colors duration-300">
+                  <Plus className="h-8 w-8 text-yellow-400 mb-2" />
+                  <p className="text-sm font-medium text-gray-400">Create New List</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
 
-          <TabsContent value="connections">
-            <Card className="bg-[#1A1A1A] border-crate-gold/20">
-              <CardHeader><CardTitle>Connections</CardTitle></CardHeader>
-              <CardContent className="space-y-8">
-                {['Followers','Following'].map((section,idx)=>{
-                  const arr = section==='Followers' ? connections.followers : connections.following;
+        {/* Reviews & Connections Tabs */}
+        <div className="mb-12">
+          <div className="grid grid-cols-2 bg-zinc-900 border border-gray-800 rounded-xl p-1 mb-6">
+            <button
+              onClick={() => setActiveTab("reviews")}
+              className={`py-3 px-4 rounded-lg text-gray-400 font-medium transition-colors ${activeTab === 'reviews' ? 'bg-yellow-400/20 text-yellow-400' : ''}`}
+            >
+              <Star className="mr-2 h-4 w-4 inline-block" /> Reviews
+            </button>
+            <button
+              onClick={() => setActiveTab("connections")}
+              className={`py-3 px-4 rounded-lg text-gray-400 font-medium transition-colors ${activeTab === 'connections' ? 'bg-yellow-400/20 text-yellow-400' : ''}`}
+            >
+              <UserIcon className="mr-2 h-4 w-4 inline-block" /> Connections
+            </button>
+          </div>
+
+          {/* Reviews Content */}
+          {activeTab === "reviews" && (
+            <div className="bg-zinc-900 border border-yellow-400/20 shadow-xl rounded-2xl">
+              <div className="p-6 flex flex-row items-center justify-between border-b border-gray-800">
+                <h2 className="text-2xl font-bold flex items-center text-yellow-400">
+                  <Star className="mr-2 h-6 w-6" /> Your Reviews
+                </h2>
+                <button onClick={() => setReviewDialogDisplay(true)} className="bg-yellow-400 text-black font-semibold hover:bg-yellow-500 transition-colors rounded-full px-4 py-2 flex items-center">
+                  <Plus className="mr-2 h-4 w-4" /> Write a Review
+                </button>
+              </div>
+              <div className="p-6 space-y-6 max-h-[500px] overflow-y-auto custom-scrollbar">
+                {userReviews.length > 0 ? (
+                  userReviews.map(r => (
+                    <div key={r.movieId} className="flex items-start gap-4 p-4 bg-zinc-800 rounded-xl hover:ring-2 hover:ring-yellow-400/30 transition-all duration-300">
+                      <img
+                        src={`https://image.tmdb.org/t/p/w92${r.moviePoster}`}
+                        alt={r.movieTitle}
+                        className="w-16 h-24 object-cover rounded-lg flex-shrink-0"
+                      />
+                      <div className="flex-1">
+                        <div className="flex items-center justify-between mb-2">
+                          <h3 className="font-bold text-gray-100 text-lg">{r.movieTitle}</h3>
+                          {renderStars(r.rating)}
+                        </div>
+                        <p className="text-gray-400 text-sm">{r.reviewText}</p>
+                      </div>
+                    </div>
+                  ))
+                ) : (
+                  <div className="text-center py-10 text-gray-500">
+                    <p>You haven't written any reviews yet. Start by writing one!</p>
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+
+          {/* Connections Content */}
+          {activeTab === "connections" && (
+            <div className="bg-zinc-900 border border-yellow-400/20 shadow-xl rounded-2xl">
+              <div className="p-6">
+                <h2 className="text-2xl font-bold text-yellow-400">Connections</h2>
+              </div>
+              <div className="p-6 space-y-8">
+                {['Followers', 'Following'].map((section) => {
+                  const arr = section === 'Followers' ? userData.followers : userData.following;
                   return (
-                    <div key={idx}>
+                    <div key={section}>
                       <div className="flex justify-between items-center mb-4">
-                        <h3 className="text-[#E0E0E0]/80 font-medium">
+                        <h3 className="text-xl font-semibold text-gray-300">
                           {section} ({arr.length})
                         </h3>
-                        <Button variant="link" className="text-crate-gold p-0">View All</Button>
+                        {/* <button className="text-yellow-400 font-semibold hover:underline">View All</button> */}
                       </div>
-                      <div className="grid grid-cols-4 gap-2">
-                        {arr.slice(0,8).map((u,i)=>(
-                          <div key={i} className="text-center">
-                            <Avatar className="mx-auto w-12 h-12 border border-crate-gold/30">
-                              <AvatarFallback className="bg-crate-dark text-xs">
-                                {u.username.slice(0,2).toUpperCase()}
-                              </AvatarFallback>
-                            </Avatar>
-                            <p className="text-xs mt-1 truncate text-[#E0E0E0]/80">
+                      <div className="grid grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
+                        {arr.map((u, i) => (
+                          <div key={i} className="text-center flex flex-col items-center">
+                            <div className="w-16 h-16 rounded-full border-2 border-yellow-400/30 flex items-center justify-center bg-zinc-800 text-lg text-yellow-400">
+                            
+                              {/* <span>{u.username.charAt(0).toUpperCase()}</span>
+                               */}
+                              {u.profilePic ? (
+                                <img src={u.profilePic} alt={u.username} className="w-full h-full object-cover rounded-full" />
+                              ) : (
+                                <span>{u.username.charAt(0).toUpperCase()}</span>
+                              )}
+                            </div>
+                            <p className="text-sm mt-2 truncate max-w-full font-medium text-gray-400">
                               {u.username}
                             </p>
                           </div>
@@ -458,79 +415,131 @@ export default function ProfilePage({currUser}) {
                     </div>
                   );
                 })}
-              </CardContent>
-            </Card>
-          </TabsContent>
-        </Tabs>
+              </div>
+            </div>
+          )}
+        </div>
       </div>
+
+      {/* Write Review Dialog */}
+      {reviewDialogDisplay && (
+        <div className="fixed inset-0 flex items-center justify-center bg-black/70 z-50">
+          <div className="bg-zinc-900 border border-gray-800 text-white rounded-lg shadow-xl max-w-lg w-full mx-4">
+            <div className="p-6 border-b border-gray-800">
+              <h3 className="text-2xl font-bold text-yellow-400">Write a Review</h3>
+            </div>
+            <div className="p-6 space-y-6">
+              <div>
+                <label htmlFor="movie" className="text-gray-400 mb-2 block">Movie</label>
+                <SearchBar setSelectedMovie={setSelectedMovie} />
+              </div>
+              <div>
+                <label htmlFor="rating" className="text-gray-400 mb-2 block">Rating</label>
+                <input
+                  onChange={e => setRating(e.target.value)}
+                  value={rating}
+                  id="rating"
+                  type="number"
+                  min="0"
+                  max="10"
+                  step="1"
+                  placeholder="Enter rating (0-10)"
+                  className="w-full bg-zinc-800 text-white border-gray-700 rounded-md p-2 focus:ring-1 focus:ring-yellow-400/50"
+                  required
+                />
+              </div>
+              <div>
+                <label htmlFor="review" className="text-gray-400 mb-2 block">Review</label>
+                <textarea
+                  onChange={e => setReview(e.target.value)}
+                  value={review}
+                  id="review"
+                  placeholder="Enter your review here..."
+                  className="w-full bg-zinc-800 text-white border-gray-700 rounded-md p-2 min-h-[120px] focus:ring-1 focus:ring-yellow-400/50"
+                  required
+                />
+              </div>
+              <div className="flex items-center space-x-2">
+                <input
+                  onChange={e => setSpoiler(e.target.checked)}
+                  checked={spoiler}
+                  id="spoiler"
+                  type="checkbox"
+                  className="h-4 w-4 text-yellow-400 rounded focus:ring-yellow-400 bg-zinc-800 border-gray-700"
+                />
+                <label htmlFor="spoiler" className="text-gray-400">Contains Spoilers</label>
+              </div>
+            </div>
+            <div className="p-6 flex justify-end gap-2">
+              <button onClick={() => setReviewDialogDisplay(false)} className="bg-gray-700 text-white hover:bg-gray-600 transition-colors rounded-md px-4 py-2">
+                Cancel
+              </button>
+              <button onClick={handleReviewSubmit} className="bg-yellow-400 text-black hover:bg-yellow-500 transition-colors rounded-md px-4 py-2">
+                Submit Review
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+      
+      {/* Create New List Dialog */}
+      {createListDialogDisplay && (
+        <div className="fixed inset-0 flex items-center justify-center bg-black/70 z-50">
+          <div className="bg-zinc-900 border border-gray-800 text-white rounded-lg shadow-xl max-w-lg w-full mx-4">
+            <div className="p-6 border-b border-gray-800">
+              <h3 className="text-2xl font-bold text-yellow-400">Create New List</h3>
+            </div>
+            <div className="p-6 space-y-6">
+              <div>
+                <label htmlFor="listTitle" className="text-gray-400 mb-2 block">List Title</label>
+                <input
+                  onChange={e => setListTitle(e.target.value)}
+                  value={listTitle}
+                  id="listTitle"
+                  type="text"
+                  placeholder="e.g., My Favorite Films of 2024"
+                  className="w-full bg-zinc-800 text-white border-gray-700 rounded-md p-2 focus:ring-1 focus:ring-yellow-400/50"
+                  required
+                />
+              </div>
+              <div>
+                {/* <label htmlFor="movieSearch" className="text-gray-400 mb-2 block">Add Movies</label> */}
+                <SearchBar setSelectedMovie={handleAddMovieToList} />
+              </div>
+              
+              {/* Movie List Preview */}
+              {listMovies.length > 0 && (
+                <div className="space-y-4 max-h-60 overflow-y-auto custom-scrollbar">
+                  <h4 className="font-semibold text-gray-300">Movies in this list:</h4>
+                  {listMovies.map(movie => (
+                    <div key={movie.movieId} className="flex items-center gap-4 p-2 bg-zinc-800 rounded-md">
+                      <img
+                        src={`https://image.tmdb.org/t/p/w92${movie.moviePoster}`}
+                        alt={movie.movieTitle}
+                        className="w-12 h-18 object-cover rounded-md flex-shrink-0"
+                      />
+                      <span className="flex-1 text-sm font-medium truncate text-gray-200">{movie.movieTitle}</span>
+                      <button onClick={() => handleRemoveMovie(movie.movieId)} className="text-red-400 hover:text-red-500 transition-colors">
+                        <X className="h-4 w-4" />
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+            <div className="p-6 flex justify-end gap-2">
+              <button onClick={() => setCreateListDialogDisplay(false)} className="bg-gray-700 text-white hover:bg-gray-600 transition-colors rounded-md px-4 py-2">
+                Cancel
+              </button>
+              <button onClick={handleCreateListSubmit} className="bg-yellow-400 text-black font-semibold hover:bg-yellow-500 transition-colors rounded-md px-4 py-2">
+                Create List
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       <Footer />
     </div>
   );
 }
-
-
-
-// {reviewDialogDisplay && (
-//   <div className="fixed inset-0 flex items-center justify-center bg-black/70 z-50">
-//     <Dialog open={reviewDialogDisplay} onOpenChange={setReviewDialogDisplay}>
-//       <DialogContent>
-//         <DialogHeader>Write a Review</DialogHeader>
-//         <div className="mb-4">
-//           <Label htmlFor="movie" className="text-crate-cream">Movie</Label>
-//           <SearchBar setSelectedMovie={setSelectedMovie} />
-//           {console.log("selected movie",selectedMovie)}
-//         </div>
-//         <div className="mb-4">
-//           <Label htmlFor="rating" className="text-crate-cream">Rating</Label>
-//           <div className="relative">
-//             <Star className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-crate-gold" />
-//             <Input
-//               id="rating"
-//               type="number"
-//               min="0"
-//               max="10"
-//               step="0.1"
-//               placeholder="Enter rating (0-10)"
-//               className="pl-10 bg-crate-darker border-crate-gold/20 text-crate-cream"
-//               required
-//             />
-//           </div>
-//         </div>
-//         <div className="mb-4">
-//           <Label htmlFor="review" className="text-crate-cream">Review</Label> 
-//           <div className="relative">
-//             {/* <Chat className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-crate-gold" /> */}
-//             <Textarea
-//               id="review"
-//               placeholder="Enter your review"
-//               className="pl-10 bg-crate-darker border-crate-gold/20 text-crate-cream"
-//               rows="4"
-//               required
-//             />
-//           </div>
-//         </div>
-//         <div className="mb-4">
-//           <Label htmlFor="spoiler" className="text-crate-cream">Spoiler Alert</Label>
-//           <div className="relative">
-//             <input
-//               id="spoiler"
-//               type="checkbox" 
-//               className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-crate-gold"
-//             />
-//           </div>
-//         </div>
-//         <div className="flex justify-end">
-//           <Button onClick={() => setReviewDialogDisplay(false)} className="bg-crate-gold text-white hover:bg-yellow-500/90 flex items-center">
-//             Cancel
-//           </Button>
-//           <Button className="bg-crate-gold text-white hover:bg-yellow-500/90 flex items-center ml-2">
-//             <Plus className="mr-2 h-4 w-4" /> Submit Review
-//           </Button>
-//         </div>
-//       </DialogContent>
-//     </Dialog>
-//   </div>
-// )}
-
-

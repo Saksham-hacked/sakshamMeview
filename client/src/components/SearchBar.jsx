@@ -3,6 +3,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import debounce from 'lodash.debounce';
 
 
+
 export default function MovieSearchBar({setSelectedMovie}) {
   const [query, setQuery] = useState('');
   const [suggestions, setSuggestions] = useState([]);
@@ -12,7 +13,8 @@ export default function MovieSearchBar({setSelectedMovie}) {
 
    async  function  handleMovieClick(id){
     try {
-        const response = await fetch(`https://api.themoviedb.org/3/movie/${id}?api_key=952fd5ce73dcd68d8702dc0aa5fcc3cb`);
+        const apiKey = import.meta.env.VITE_TMDB_API_KEY;
+        const response = await fetch(`https://api.themoviedb.org/3/movie/${id}?api_key=${apiKey}`);
         const data = await response.json();
         setSelectedMovie(data);
         setOpen(false);
@@ -30,7 +32,12 @@ export default function MovieSearchBar({setSelectedMovie}) {
         return;
       }
       try {
-        const apiKey = "952fd5ce73dcd68d8702dc0aa5fcc3cb"; 
+        const apiKey = import.meta.env.VITE_TMDB_API_KEY;
+        // console.log('API Key:', apiKey);
+        if (!apiKey) {
+          console.error('API key is not defined');
+          return;
+        }
         const url = `https://api.themoviedb.org/3/search/movie`
                   + `?api_key=${apiKey}`
                   + `&query=${encodeURIComponent(q)}`

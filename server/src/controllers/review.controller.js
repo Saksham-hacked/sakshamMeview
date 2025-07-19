@@ -77,11 +77,138 @@ const getReviewByMovieId = asyncHandler(async (req, res) => {
         new ApiResponse(200,"Review fetched successfully",review)
     ) 
 })
+
+const getTopReviewers = asyncHandler(async (req, res) => {
+  const topReviewers = await Review.aggregate([
+    {
+      $group: {
+        _id: "$userId",
+        totalReviews: { $sum: 1 },
+        totalLikes: { $sum: "$likes" },
+        totalComments: { $sum: { $size: "$comments" } }
+      }
+    },
+    {
+      $lookup: {
+        from: "users",
+        localField: "_id",
+        foreignField: "_id",
+        as: "user"
+      }
+    },
+    { $unwind: "$user" },
+    {
+      $project: {
+        _id: 0,
+        user: "$user",             // 👈 full user object
+        userId: "$_id",
+        totalReviews: 1,
+        totalLikes: 1,
+        totalComments: 1
+      }
+    },
+    {
+      $sort: {
+        totalReviews: -1,
+        totalLikes: -1,
+        totalComments: -1
+      }
+    },
+    { $limit: 10 }
+  ]);
+
+  if (!topReviewers) {
+    throw new ApiErrors(400, "Error fetching top reviewers");
+  }
+    console.log("Top Reviewers:", topReviewers);
+
+  res.status(200).json({
+    success: true,
+    message: "Top reviewers fetched successfully",
+    data: topReviewers
+  });
+});
+
+
+const addLikeToReview = asyncHandler(async (req, res) => {
+  const { reviewId } = req.params;
+  const review = await Review.findById(reviewId);
+  if (!review) {
+    throw new ApiErrors(400, "Review not found");
+  }
+  review.likes += 1;
+  await review.save();
+  res.status(200).json({
+    success: true,
+    message: "Like added to review successfully",
+    data: review
+  });
+});
+
+const addCommentToReview = asyncHandler(async (req, res) => {
+  const { reviewId } = req.params;
+  const { commentText } = req.body;
+    const review = await Review.findById(reviewId);
+  if (!review) {
+    throw new ApiErrors(400, "Review not found");
+  }
+    review.comments.push({
+        text: commentText,
+        userId: req.user._id, // Assuming req.user is populated with the authenticated user's info
+        createdAt: new Date()
+    });
+  await review.save();
+  res.status(200).json({
+    success: true,
+    message: "Comment added to review successfully",
+    data: review
+  });
+});
+
+const deleteCommentFromReview = asyncHandler(async (req, res) => {
+  const { reviewId, commentId } = req.params;
+  const review = await Review.findById(reviewId);
+  if (!review) {
+    throw new ApiErrors(400, "Review not found");
+  }
+  const commentIndex = review.comments.findIndex(comment => comment._id.toString() === commentId);
+  if (commentIndex === -1) {
+    throw new ApiErrors(400, "Comment not found");
+  }
+  review.comments.splice(commentIndex, 1);
+  await review.save();
+  res.status(200).json({
+    success: true,
+    message: "Comment deleted from review successfully",
+    data: review
+  });
+});
+
+const addDislikeToReview = asyncHandler(async (req, res) => {
+  const { reviewId } = req.params;
+  const review = await Review.findById(reviewId);
+  if (!review) {
+    throw new ApiErrors(400, "Review not found");
+  }
+  review.dislikes += 1;
+  await review.save();
+  res.status(200).json({
+    success: true,
+    message: "Dislike added to review successfully",
+    data: review
+  });
+});
     
 
 export {
     addReview,
     getAllReviews,
     getReviewByUserId,
-    getReviewByMovieId
+    getReviewByMovieId,
+    getTopReviewers,
+    addLikeToReview,
+    addCommentToReview,
+    deleteCommentFromReview,
+    addDislikeToReview
+
 }

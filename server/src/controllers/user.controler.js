@@ -219,11 +219,19 @@ const refreshAccessToken = asyncHandler(async (req,res)=>{
 });
 
 const getCurrentUSer = asyncHandler(async (req,res)=>{
+    if(!req.user){
+        throw new ApiErrors(401,"unauthorised request");
+    }
+    const userDetails = await User.findById(req.user._id).select("-password -refreshToken").populate("followers following","-password -refreshToken");
+    if(!userDetails){
+        throw new ApiErrors(400,"Error fetching user");
+    }
+
     return res.status(200).json(
         new ApiResponse(
             200,
             "User fetched successfully",
-            req.user
+            userDetails
         )
     );
 })

@@ -3,8 +3,9 @@ const app = express();
 import cookieParser from 'cookie-parser';
 import cors from 'cors';
 
+
 app.use(cors({
-    origin: process.env.CORS_ORIGIN,
+    origin :"http://localhost:5173",
     credentials: true,
 }))
 
@@ -14,11 +15,14 @@ app.use(express.static('public'));
 app.use(cookieParser());
 
 
+
 import userRouter from './routes/user.routes.js';
 import reviewRouter from './routes/review.routes.js';
+import topFiveRouter from './routes/topFive.routes.js';
 
 app.use("/user",userRouter);
 app.use("/review", reviewRouter);
+app.use("/topfive", topFiveRouter);
 
 
 export default app;

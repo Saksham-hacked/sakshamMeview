@@ -132,28 +132,42 @@ const getTopReviewers = asyncHandler(async (req, res) => {
 
 const addLikeToReview = asyncHandler(async (req, res) => {
   const { reviewId } = req.params;
+  const userId = req.user._id;
+  console.log("Adding like to reviewId:", reviewId, "by userId:", userId);
+
   const review = await Review.findById(reviewId);
-  if (!review) {
-    throw new ApiErrors(400, "Review not found");
+  if (!review) throw new ApiErrors(400, "Review not found");
+
+  // Remove if already disliked
+  review.dislikes = review.dislikes.filter(id => id.toString() !== userId.toString());
+
+
+  // Toggle like
+  if (review.likes.includes(userId)) {
+    review.likes = review.likes.filter(id => id.toString() !== userId.toString());
+  } else {
+    review.likes.push(userId);
   }
-  review.likes += 1;
+
+
   await review.save();
   res.status(200).json({
     success: true,
-    message: "Like added to review successfully",
+    message: "Review like updated successfully",
     data: review
   });
 });
 
+
 const addCommentToReview = asyncHandler(async (req, res) => {
   const { reviewId } = req.params;
-  const { commentText } = req.body;
+  const { text } = req.body;
     const review = await Review.findById(reviewId);
   if (!review) {
     throw new ApiErrors(400, "Review not found");
   }
     review.comments.push({
-        text: commentText,
+       commentText: text,
         userId: req.user._id, // Assuming req.user is populated with the authenticated user's info
         createdAt: new Date()
     });
@@ -186,18 +200,29 @@ const deleteCommentFromReview = asyncHandler(async (req, res) => {
 
 const addDislikeToReview = asyncHandler(async (req, res) => {
   const { reviewId } = req.params;
+  const userId = req.user._id;
+
   const review = await Review.findById(reviewId);
-  if (!review) {
-    throw new ApiErrors(400, "Review not found");
+  if (!review) throw new ApiErrors(400, "Review not found");
+
+  // Remove if already liked
+  review.likes = review.likes.filter(id => id.toString() !== userId.toString());
+
+  // Toggle dislike
+  if (review.dislikes.includes(userId)) {
+    review.dislikes = review.dislikes.filter(id => id.toString() !== userId.toString());
+  } else {
+    review.dislikes.push(userId);
   }
-  review.dislikes += 1;
+
   await review.save();
   res.status(200).json({
     success: true,
-    message: "Dislike added to review successfully",
+    message: "Review dislike updated successfully",
     data: review
   });
 });
+
     
 
 export {

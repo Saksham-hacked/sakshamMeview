@@ -235,15 +235,15 @@ const Navbar = ({ currUser }) => {
       {/* Mobile Menu Content */}
       {isMenuOpen && (
         <div className="md:hidden bg-black/90 backdrop-blur-md px-4 py-6 w-full flex flex-col items-start space-y-4 transition-all duration-300 ease-in-out">
-          <NavLink to="/" onClick={handleMenuToggle} className="text-gray-400 text-lg hover:text-yellow-400 transition-colors flex items-center w-full">
+          <NavLink to="/review" onClick={handleMenuToggle} className="text-gray-400 text-lg hover:text-yellow-400 transition-colors flex items-center w-full">
             <Star className="h-5 w-5 mr-2 text-yellow-400" />
             <span>Reviews</span>
           </NavLink>
-          <a href="#" onClick={handleMenuToggle} className="text-gray-400 text-lg hover:text-yellow-400 transition-colors flex items-center w-full">
+          {/* <a href="#" onClick={handleMenuToggle} className="text-gray-400 text-lg hover:text-yellow-400 transition-colors flex items-center w-full">
             <Film className="h-5 w-5 mr-2 text-yellow-400" />
             <span>Features</span>
-          </a>
-          <NavLink to="/user/community" onClick={handleMenuToggle} className="text-gray-400 text-lg hover:text-yellow-400 transition-colors flex items-center w-full">
+          </a> */}
+          <NavLink to="/community" onClick={handleMenuToggle} className="text-gray-400 text-lg hover:text-yellow-400 transition-colors flex items-center w-full">
             <Popcorn className="h-5 w-5 mr-2 text-yellow-400" />
             <span>Community</span>
           </NavLink>

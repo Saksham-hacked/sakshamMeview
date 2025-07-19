@@ -162,9 +162,9 @@ const CommunityPage = () => {
                 <p className="text-gray-400 text-center py-8">No top reviewers to display.</p>
               ) : (
                 topReviewers.map((review) => (
-                  <Card key={review.user._id} className="bg-zinc-900 border-zinc-800 shadow-lg transition hover:shadow-yellow-800/30">
+                  <Card key={review.user._id} onClick={() => navigate(`/user/profile/${review.user.username}`)} className="bg-zinc-900 border-zinc-800 shadow-lg transition hover:shadow-yellow-800/30">
                     <CardContent className="p-4">
-                      <div className="flex items-start space-x-4">
+                      <div className="flex items-start space-x-4 ">
                         {renderUserAvatar(review.user)}
                         <div className="space-y-2">
                           <h3 className="font-semibold text-gray-100">{review.user.username}</h3>

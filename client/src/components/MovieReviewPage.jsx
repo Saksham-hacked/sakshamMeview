@@ -1,34 +1,40 @@
-
-
-import React, { useState, useEffect } from 'react';
-import { Search } from 'lucide-react';
-import Navbar from './Navbar';
-import SearchBar from './SearchBar';
-import { envApi } from './getEnvironment';
+import React, { useState, useEffect } from "react";
+import { Search } from "lucide-react";
+import Navbar from "./Navbar";
+import SearchBar from "./SearchBar";
+import { envApi } from "./getEnvironment";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Card, CardContent } from "@/components/ui/card";
-import { ArrowUp, ArrowDown, Send, Star } from 'lucide-react';
+import { ArrowUp, ArrowDown, Send, Star } from "lucide-react";
 
 const MovieReviewsPage = () => {
   const [selectedMovie, setSelectedMovie] = useState(null);
   const [movieReviews, setMovieReviews] = useState([]);
   const [loadingReviews, setLoadingReviews] = useState(false);
   const [userData, setUserData] = useState(null);
+  const [commentText, setCommentText] = useState("");
+  const [openComments, setOpenComments] = useState({});
+  const toggleComments = (reviewId) => {
+    setOpenComments((prev) => ({
+      ...prev,
+      [reviewId]: !prev[reviewId],
+    }));
+  };
 
   // Fetch user data
   useEffect(() => {
     const fetchUserData = async () => {
       try {
         const response = await fetch(`http://${envApi}/user/`, {
-          method: 'GET',
-          credentials: 'include',
-          headers: { 'Content-Type': 'application/json' },
+          method: "GET",
+          credentials: "include",
+          headers: { "Content-Type": "application/json" },
         });
-        if (!response.ok) throw new Error('Network error');
+        if (!response.ok) throw new Error("Network error");
         const data = await response.json();
         setUserData(data.data);
       } catch (error) {
-        console.error('Error fetching user data:', error);
+        console.error("Error fetching user data:", error);
       }
     };
     fetchUserData();
@@ -40,25 +46,28 @@ const MovieReviewsPage = () => {
       if (!selectedMovie?.id) return setMovieReviews([]);
       setLoadingReviews(true);
       try {
-        const response = await fetch(`http://${envApi}/review/${selectedMovie.id}`, {
-          method: 'GET',
-          credentials: 'include',
-          headers: { 'Content-Type': 'application/json' },
-        });
-        if (!response.ok) throw new Error('Failed to fetch');
+        const response = await fetch(
+          `http://${envApi}/review/${selectedMovie.id}`,
+          {
+            method: "GET",
+            credentials: "include",
+            headers: { "Content-Type": "application/json" },
+          }
+        );
+        if (!response.ok) throw new Error("Failed to fetch");
         const data = await response.json();
-        
+
         // CRITICAL FIX: Ensure likes and dislikes are arrays to prevent the TypeError.
         // This is a temporary frontend fix. The backend should be updated to return these as arrays.
-        const safeReviews = (data.data || []).map(review => ({
+        const safeReviews = (data.data || []).map((review) => ({
           ...review,
           likes: Array.isArray(review.likes) ? review.likes : [],
-          dislikes: Array.isArray(review.dislikes) ? review.dislikes : []
+          dislikes: Array.isArray(review.dislikes) ? review.dislikes : [],
         }));
         setMovieReviews(safeReviews);
         console.log("Fetched reviews:", safeReviews);
       } catch (error) {
-        console.error('Failed to load reviews:', error);
+        console.error("Failed to load reviews:", error);
       } finally {
         setLoadingReviews(false);
       }
@@ -73,11 +82,27 @@ const MovieReviewsPage = () => {
     const half = starsOutOfFive % 1 !== 0;
     const stars = [];
     for (let i = 0; i < full; i++) {
-      stars.push(<Star key={`full-${i}`} className="w-4 h-4 text-yellow-400 fill-yellow-400" />);
+      stars.push(
+        <Star
+          key={`full-${i}`}
+          className="w-4 h-4 text-yellow-400 fill-yellow-400"
+        />
+      );
     }
-    if (half) stars.push(<Star key="half" className="w-4 h-4 text-yellow-400 fill-yellow-400/50" />);
+    if (half)
+      stars.push(
+        <Star
+          key="half"
+          className="w-4 h-4 text-yellow-400 fill-yellow-400/50"
+        />
+      );
     for (let i = 0; i < 5 - full - (half ? 1 : 0); i++) {
-      stars.push(<Star key={`empty-${i}`} className="w-4 h-4 text-slate-600 fill-slate-700" />);
+      stars.push(
+        <Star
+          key={`empty-${i}`}
+          className="w-4 h-4 text-slate-600 fill-slate-700"
+        />
+      );
     }
     return <div className="flex">{stars}</div>;
   };
@@ -92,16 +117,95 @@ const MovieReviewsPage = () => {
           alt={user.username}
           className="object-cover w-full h-full"
           onError={(e) =>
-            (e.currentTarget.src = `https://api.dicebear.com/7.x/avataaars/svg?seed=${user._id || user.username}`)
+            (e.currentTarget.src = `https://api.dicebear.com/7.x/avataaars/svg?seed=${
+              user._id || user.username
+            }`)
           }
         />
         <AvatarFallback className="bg-zinc-800 text-yellow-400 font-semibold text-lg">
-          {user.username?.charAt(0).toUpperCase() || 'U'}
+          {user.username?.charAt(0).toUpperCase() || "U"}
         </AvatarFallback>
       </Avatar>
     );
   };
-  
+  const renderUserAvatarForCommenters = (user) => {
+    if (!user) return null;
+    return (
+      <Avatar className="w-12 h-12 rounded-full overflow-hidden bg-zinc-800 aspect-square border border-zinc-700">
+        <AvatarImage
+          src={`https://api.dicebear.com/9.x/adventurer/svg?seed=${
+              user._id || user.username
+            }`}
+          alt={user.username}
+          className="object-cover w-full h-full"
+          onError={(e) =>
+            (e.currentTarget.src = `https://api.dicebear.com/7.x/avataaars/svg?seed=${
+              user._id || user.username
+            }`)
+          }
+        />
+        <AvatarFallback className="bg-zinc-800 text-yellow-400 font-semibold text-lg">
+          {user.username?.charAt(0).toUpperCase() || "U"}
+        </AvatarFallback>
+      </Avatar>
+    );
+  };
+
+  const handlecomment = async (reviewId, commentText) => {
+    if (!userData) {
+      alert("Please log in to comment on a review.");
+      return;
+    }
+
+    const userId = userData._id;
+
+    // Optimistically update the state
+    setMovieReviews((prevReviews) =>
+      prevReviews.map((review) => {
+        if (review._id === reviewId) {
+          const newComments = Array.isArray(review.comments)
+            ? [...review.comments]
+            : [];
+          newComments.push({ userId, text: commentText });
+          return { ...review, comments: newComments };
+        }
+        return review;
+      })
+    );
+
+    // Send the comment to the backend
+    try {
+      const response = await fetch(
+        `http://${envApi}/review/comment/${reviewId}`,
+        {
+          method: "POST",
+          credentials: "include",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ text: commentText }),
+        }
+      );
+      if (!response.ok) throw new Error("Network response was not ok");
+
+      setCommentText(""); // Clear the comment input after sending
+      //update the review state with the new comment
+      const data = await response.json();
+      console.log("Comment response data:", data);
+        setMovieReviews((prevReviews) =>
+          prevReviews.map((review) => {
+            if (review._id === reviewId) {
+                return {
+                    ...review,
+                    comments: data.data.comments, // Use the updated comments from the response
+                };
+                }
+                return review;
+            })
+        );
+    } catch (error) {
+      console.error("Error sending comment:", error);
+    }
+  };
+
   const handleLike = async (reviewId) => {
     console.log("handleLike called with reviewId:", reviewId);
     if (!userData) {
@@ -110,60 +214,21 @@ const MovieReviewsPage = () => {
     }
 
     const userId = userData._id;
-    
+
     // Optimistically update the state
-    setMovieReviews(prevReviews => prevReviews.map(review => {
-      if (review._id === reviewId) {
-        const newLikes = Array.isArray(review.likes) ? [...review.likes] : [];
-        const newDislikes = Array.isArray(review.dislikes) ? [...review.dislikes] : [];
-        
-        const dislikeIndex = newDislikes.indexOf(userId);
-        if (dislikeIndex > -1) {
-          newDislikes.splice(dislikeIndex, 1);
-        }
-
-        const likeIndex = newLikes.indexOf(userId);
-        if (likeIndex > -1) {
-          newLikes.splice(likeIndex, 1);
-        } else {
-          newLikes.push(userId);
-        }
-
-        return { ...review, likes: newLikes, dislikes: newDislikes };
-      }
-      return review;
-    }));
-
-    console.log("Optimistically updated likes for reviewId:", reviewId, "New likes:", movieReviews.find(r => r._id === reviewId)?.likes);
-
-    try {
-      const response = await fetch(`http://${envApi}/review/like/${reviewId}`, {
-        method: 'POST',
-        credentials: 'include',
-        headers: { 'Content-Type': 'application/json' },
-      });
-      if (!response.ok) {
-        throw new Error('Network response was not ok');
-      }
-      response.json().then(data => {
-        console.log("Like response data:", data);
-      });
-    } catch (error) {
-      console.error('Error liking/un-liking review:', error);
-      alert('Failed to update like status. Please try again.');
-      // Revert the state change on error
-      setMovieReviews(prevReviews => prevReviews.map(review => {
+    setMovieReviews((prevReviews) =>
+      prevReviews.map((review) => {
         if (review._id === reviewId) {
           const newLikes = Array.isArray(review.likes) ? [...review.likes] : [];
-          const newDislikes = Array.isArray(review.dislikes) ? [...review.dislikes] : [];
-          
+          const newDislikes = Array.isArray(review.dislikes)
+            ? [...review.dislikes]
+            : [];
+
           const dislikeIndex = newDislikes.indexOf(userId);
           if (dislikeIndex > -1) {
             newDislikes.splice(dislikeIndex, 1);
-          } else {
-            newDislikes.push(userId);
           }
-          
+
           const likeIndex = newLikes.indexOf(userId);
           if (likeIndex > -1) {
             newLikes.splice(likeIndex, 1);
@@ -174,7 +239,61 @@ const MovieReviewsPage = () => {
           return { ...review, likes: newLikes, dislikes: newDislikes };
         }
         return review;
-      }));
+      })
+    );
+
+    console.log(
+      "Optimistically updated likes for reviewId:",
+      reviewId,
+      "New likes:",
+      movieReviews.find((r) => r._id === reviewId)?.likes
+    );
+
+    try {
+      const response = await fetch(`http://${envApi}/review/like/${reviewId}`, {
+        method: "POST",
+        credentials: "include",
+        headers: { "Content-Type": "application/json" },
+      });
+      if (!response.ok) {
+        throw new Error("Network response was not ok");
+      }
+      response.json().then((data) => {
+        console.log("Like response data:", data);
+      });
+    } catch (error) {
+      console.error("Error liking/un-liking review:", error);
+      alert("Failed to update like status. Please try again.");
+      // Revert the state change on error
+      setMovieReviews((prevReviews) =>
+        prevReviews.map((review) => {
+          if (review._id === reviewId) {
+            const newLikes = Array.isArray(review.likes)
+              ? [...review.likes]
+              : [];
+            const newDislikes = Array.isArray(review.dislikes)
+              ? [...review.dislikes]
+              : [];
+
+            const dislikeIndex = newDislikes.indexOf(userId);
+            if (dislikeIndex > -1) {
+              newDislikes.splice(dislikeIndex, 1);
+            } else {
+              newDislikes.push(userId);
+            }
+
+            const likeIndex = newLikes.indexOf(userId);
+            if (likeIndex > -1) {
+              newLikes.splice(likeIndex, 1);
+            } else {
+              newLikes.push(userId);
+            }
+
+            return { ...review, likes: newLikes, dislikes: newDislikes };
+          }
+          return review;
+        })
+      );
     }
   };
 
@@ -187,53 +306,19 @@ const MovieReviewsPage = () => {
     const userId = userData._id;
 
     // Optimistically update the state
-    setMovieReviews(prevReviews => prevReviews.map(review => {
-      if (review._id === reviewId) {
-        const newLikes = Array.isArray(review.likes) ? [...review.likes] : [];
-        const newDislikes = Array.isArray(review.dislikes) ? [...review.dislikes] : [];
-
-        const likeIndex = newLikes.indexOf(userId);
-        if (likeIndex > -1) {
-          newLikes.splice(likeIndex, 1);
-        }
-
-        const dislikeIndex = newDislikes.indexOf(userId);
-        if (dislikeIndex > -1) {
-          newDislikes.splice(dislikeIndex, 1);
-        } else {
-          newDislikes.push(userId);
-        }
-
-        return { ...review, likes: newLikes, dislikes: newDislikes };
-      }
-      return review;
-    }));
-
-    try {
-      const response = await fetch(`http://${envApi}/review/dislike/${reviewId}`, {
-        method: 'POST',
-        credentials: 'include',
-        headers: { 'Content-Type': 'application/json' },
-      });
-      if (!response.ok) {
-        throw new Error('Network response was not ok');
-      }
-    } catch (error) {
-      console.error('Error disliking/un-disliking review:', error);
-      alert('Failed to update dislike status. Please try again.');
-      // Revert the state change on error
-      setMovieReviews(prevReviews => prevReviews.map(review => {
+    setMovieReviews((prevReviews) =>
+      prevReviews.map((review) => {
         if (review._id === reviewId) {
           const newLikes = Array.isArray(review.likes) ? [...review.likes] : [];
-          const newDislikes = Array.isArray(review.dislikes) ? [...review.dislikes] : [];
+          const newDislikes = Array.isArray(review.dislikes)
+            ? [...review.dislikes]
+            : [];
 
           const likeIndex = newLikes.indexOf(userId);
           if (likeIndex > -1) {
             newLikes.splice(likeIndex, 1);
-          } else {
-            newLikes.push(userId);
           }
-          
+
           const dislikeIndex = newDislikes.indexOf(userId);
           if (dislikeIndex > -1) {
             newDislikes.splice(dislikeIndex, 1);
@@ -244,7 +329,54 @@ const MovieReviewsPage = () => {
           return { ...review, likes: newLikes, dislikes: newDislikes };
         }
         return review;
-      }));
+      })
+    );
+
+    try {
+      const response = await fetch(
+        `http://${envApi}/review/dislike/${reviewId}`,
+        {
+          method: "POST",
+          credentials: "include",
+          headers: { "Content-Type": "application/json" },
+        }
+      );
+      if (!response.ok) {
+        throw new Error("Network response was not ok");
+      }
+    } catch (error) {
+      console.error("Error disliking/un-disliking review:", error);
+      alert("Failed to update dislike status. Please try again.");
+      // Revert the state change on error
+      setMovieReviews((prevReviews) =>
+        prevReviews.map((review) => {
+          if (review._id === reviewId) {
+            const newLikes = Array.isArray(review.likes)
+              ? [...review.likes]
+              : [];
+            const newDislikes = Array.isArray(review.dislikes)
+              ? [...review.dislikes]
+              : [];
+
+            const likeIndex = newLikes.indexOf(userId);
+            if (likeIndex > -1) {
+              newLikes.splice(likeIndex, 1);
+            } else {
+              newLikes.push(userId);
+            }
+
+            const dislikeIndex = newDislikes.indexOf(userId);
+            if (dislikeIndex > -1) {
+              newDislikes.splice(dislikeIndex, 1);
+            } else {
+              newDislikes.push(userId);
+            }
+
+            return { ...review, likes: newLikes, dislikes: newDislikes };
+          }
+          return review;
+        })
+      );
     }
   };
 
@@ -252,14 +384,18 @@ const MovieReviewsPage = () => {
     <div className="min-h-screen bg-zinc-950 text-gray-100">
       <Navbar currUser={userData} />
       <div className="max-w-7xl mx-auto px-4 sm:px-6 py-10">
-        <h1 className="text-4xl sm:text-5xl font-bold text-center mt-20 text-yellow-400 mb-12">Movie Reviews</h1>
+        <h1 className="text-4xl sm:text-5xl font-bold text-center mt-20 text-yellow-400 mb-12">
+          Movie Reviews
+        </h1>
 
         {/* Main 2-column layout */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
           {/* Left: Search + Movie Info */}
           <div className="space-y-6">
             <div className="p-6 bg-zinc-900 rounded-lg border border-zinc-800 shadow-md">
-              <h2 className="text-xl font-bold mb-4 text-gray-200">Search Movie</h2>
+              <h2 className="text-xl font-bold mb-4 text-gray-200">
+                Search Movie
+              </h2>
               <SearchBar setSelectedMovie={setSelectedMovie} />
             </div>
 
@@ -271,11 +407,14 @@ const MovieReviewsPage = () => {
                     alt={selectedMovie.title}
                     className="w-28 h-40 object-cover rounded-md border border-zinc-700"
                     onError={(e) =>
-                      (e.currentTarget.src = "https://placehold.co/92x138/333/eee?text=No+Image")
+                      (e.currentTarget.src =
+                        "https://placehold.co/92x138/333/eee?text=No+Image")
                     }
                   />
                   <div className="space-y-1">
-                    <h3 className="text-2xl font-bold text-yellow-400">{selectedMovie.title}</h3>
+                    <h3 className="text-2xl font-bold text-yellow-400">
+                      {selectedMovie.title}
+                    </h3>
                     {selectedMovie.release_date && (
                       <p className="text-sm text-gray-400">
                         Released: {selectedMovie.release_date.slice(0, 4)}
@@ -294,7 +433,9 @@ const MovieReviewsPage = () => {
           <div className="space-y-6">
             <div className="p-6 bg-zinc-900 rounded-lg border border-zinc-800 shadow-md">
               <h2 className="text-xl font-bold text-gray-200 mb-4">
-                {selectedMovie ? `Reviews for "${selectedMovie.title}"` : "Reviews"}
+                {selectedMovie
+                  ? `Reviews for "${selectedMovie.title}"`
+                  : "Reviews"}
               </h2>
 
               {loadingReviews ? (
@@ -304,9 +445,15 @@ const MovieReviewsPage = () => {
               ) : (
                 <div className="space-y-4">
                   {movieReviews.map((review) => {
-                    const likedByUser = Array.isArray(review.likes) && userData && review.likes.includes(userData._id);
-                    const dislikedByUser = Array.isArray(review.dislikes) && userData && review.dislikes.includes(userData._id);
-                    
+                    const likedByUser =
+                      Array.isArray(review.likes) &&
+                      userData &&
+                      review.likes.includes(userData._id);
+                    const dislikedByUser =
+                      Array.isArray(review.dislikes) &&
+                      userData &&
+                      review.dislikes.includes(userData._id);
+
                     return (
                       <Card
                         key={review._id}
@@ -319,16 +466,23 @@ const MovieReviewsPage = () => {
                             <div className="flex-1">
                               <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center mb-2">
                                 <h4 className="font-semibold text-gray-200 text-lg">
-                                  {review.userId?.username || 'Anonymous'}
+                                  {review.userId?.username || "Anonymous"}
                                 </h4>
                                 {renderStars(review.rating)}
                               </div>
                               <p className="text-sm text-gray-300 whitespace-pre-wrap">
-                                {review.spoiler && <span className="text-red-400 font-semibold">Spoiler: </span>}
+                                {review.spoiler && (
+                                  <span className="text-red-400 font-semibold">
+                                    Spoiler:{" "}
+                                  </span>
+                                )}
                                 {review.reviewText}
                               </p>
                               <p className="text-xs text-gray-500 mt-2">
-                                Reviewed on {new Date(review.createdAt).toLocaleDateString()}
+                                Reviewed on{" "}
+                                {new Date(
+                                  review.createdAt
+                                ).toLocaleDateString()}
                               </p>
                             </div>
                           </div>
@@ -338,29 +492,45 @@ const MovieReviewsPage = () => {
                             {/* Dislike Button */}
                             <button
                               aria-label="Dislike"
-                              className={`flex items-center transition ${dislikedByUser ? 'text-red-400' : 'text-gray-400 hover:text-red-400'}`}
+                              className={`flex items-center transition ${
+                                dislikedByUser
+                                  ? "text-red-400"
+                                  : "text-gray-400 hover:text-red-400"
+                              }`}
                               onClick={() => handleDislike(review._id)}
                               type="button"
                             >
                               <ArrowDown className="w-5 h-5 mr-1" />
-                              <span className="text-xs font-semibold">{(review.dislikes) ? review.dislikes.length : 0}</span>
+                              <span className="text-xs font-semibold">
+                                {review.dislikes ? review.dislikes.length : 0}
+                              </span>
                             </button>
 
                             {/* Like Button */}
                             <button
                               aria-label="Like"
-                              className={`flex items-center transition ${likedByUser ? 'text-green-400' : 'text-gray-400 hover:text-green-400'}`}
+                              className={`flex items-center transition ${
+                                likedByUser
+                                  ? "text-green-400"
+                                  : "text-gray-400 hover:text-green-400"
+                              }`}
                               onClick={() => handleLike(review._id)}
                               type="button"
                             >
                               <ArrowUp className="w-5 h-5 mr-1" />
-                              <span className="text-xs font-semibold">{Array.isArray(review.likes) ? review.likes.length : 0}</span>
+                              <span className="text-xs font-semibold">
+                                {Array.isArray(review.likes)
+                                  ? review.likes.length
+                                  : 0}
+                              </span>
                             </button>
 
                             {/* Inline Comment */}
                             <input
                               type="text"
                               placeholder="Comment"
+                              onChange={(e) => setCommentText(e.target.value)}
+                              value={commentText}
                               className="flex-1 min-w-0 bg-transparent border-b border-zinc-700 px-2 py-1 text-sm text-gray-200 outline-none focus:border-yellow-500 transition"
                               style={{ maxWidth: "200px" }}
                             />
@@ -369,11 +539,44 @@ const MovieReviewsPage = () => {
                             <button
                               aria-label="Submit comment"
                               className="ml-1 text-gray-400 hover:text-yellow-400 transition"
-                              onClick={() => alert(`Comment submitted for review: ${review._id}`)}
+                              onClick={() =>
+                                handlecomment(review._id, commentText)
+                              } // Replace with actual comment text
                               type="button"
                             >
                               <Send className="w-5 h-5" />
                             </button>
+                          </div>
+                          <div>
+                            <h3
+                              className="font-semibold hover:text-yellow-400 hover:cursor-pointer text-gray-200"
+                              onClick={() => toggleComments(review._id)}
+                            >
+                              Comments {review.comments?.length || 0}
+                            </h3>
+
+                            {openComments[review._id] &&
+                              review.comments.map((comment, index) => (
+                                <div
+                                  key={index}
+                                  className="flex items-center mt-2"
+                                >
+                                  <div className="flex items-center gap-2">
+                                    {renderUserAvatarForCommenters(comment.userId)}
+                                    <div>
+                                      
+                                    </div>
+                                    <p className="text-sm text-gray-300">
+                                      {comment.commentText}
+                                    </p>
+                                      <p className="text-xs text-gray-500">
+                                        {new Date(
+                                          comment.createdAt
+                                        ).toLocaleDateString()}
+                                      </p>
+                                  </div>
+                                </div>
+                              ))}
                           </div>
                         </CardContent>
                       </Card>
@@ -390,5 +593,3 @@ const MovieReviewsPage = () => {
 };
 
 export default MovieReviewsPage;
-
-

@@ -31,14 +31,14 @@ const reviewSchema = new mongoose.Schema(
       required: true,
       trim: true,
     },
-    likes: {
-      type: Number,
-      default: 0,
-    },
-    dislikes: {
-      type: Number,
-      default: 0,
-    },
+    likes: [{
+  type: mongoose.Schema.Types.ObjectId,
+  ref: "User"
+}],
+    dislikes: [{
+  type: mongoose.Schema.Types.ObjectId,
+  ref: "User"
+}],
     spoiler: {
       type: Boolean,
       default: false,

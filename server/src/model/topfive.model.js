@@ -17,7 +17,7 @@ const topMoviesSchema = new mongoose.Schema(
         },
         moviePoster: {
           type: String,
-          required: true,
+          required: false,
         },
       },
     ],

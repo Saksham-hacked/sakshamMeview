@@ -23,7 +23,7 @@ const SignIn = () => {
     console.log('Sign in attempt with:', { email, password });
 
     try {
-      const res = await fetch(`${envApi}/user/login`, {
+      const res = await fetch(`${envApi}api/v1/user/login`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

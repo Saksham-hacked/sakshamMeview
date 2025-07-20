@@ -20,7 +20,9 @@ import userRouter from './routes/user.routes.js';
 import reviewRouter from './routes/review.routes.js';
 import topFiveRouter from './routes/topFive.routes.js';
 
-app.use("/user",userRouter);
+
+
+app.use("api/v1/user",userRouter);
 app.use("/review", reviewRouter);
 app.use("/topfive", topFiveRouter);
 

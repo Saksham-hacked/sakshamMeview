@@ -15,7 +15,7 @@ function getEnvironment() {
   // if (currentURL.includes('xceed.nitj.ac.in')) {
   //   return nitjServer;
   // }
-  return development;
+  return production;
 }
 
 export default getEnvironment;

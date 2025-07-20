@@ -5,7 +5,7 @@ import cors from 'cors';
 
 
 app.use(cors({
-    origin :["http://localhost:5173","https://meview.onrender.com"],
+    origin :["http://localhost:5173","https://meviewisfun.vercel.app"],
     methods: ["GET", "POST", "PUT", "DELETE"],
     allowedHeaders: ["Content-Type", "Authorization"],
     

@@ -4,7 +4,8 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { Star, List, User as UserIcon, X } from 'lucide-react'; // Added X icon
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer'; 
-import { envApi } from './getEnvironment';
+// import { envApi } from './getEnvironment';
+import getEnvironment from './getEnvironment';
 
 export default function UserProfile({ currUser }) {
   const navigate = useNavigate();
@@ -19,12 +20,14 @@ export default function UserProfile({ currUser }) {
   // New state for the list dialog
   const [listDialogDisplay, setListDialogDisplay] = useState(false);
   const [selectedList, setSelectedList] = useState(null);
+  const envApi = getEnvironment();
+
 
   // Fetch user data from the API
   useEffect(() => {
     const fetchUserData = async () => {
       try {
-        const response = await fetch(`http://${envApi}/user/${username}`, {
+        const response = await fetch(`${envApi}/user/${username}`, {
           method: 'GET',
           headers: { 'Content-Type': 'application/json' },
         });
@@ -48,7 +51,7 @@ export default function UserProfile({ currUser }) {
     const getUserReviews = async () => {
       if (userdata) {
         try {
-          const response = await fetch(`http://${envApi}/review/userReview/${userdata._id}`, {
+          const response = await fetch(`${envApi}/review/userReview/${userdata._id}`, {
             method: 'GET',
             credentials: 'include',
             headers: { 'Content-Type': 'application/json' },
@@ -69,7 +72,7 @@ export default function UserProfile({ currUser }) {
     const getUserLists = async () => {
       if (userdata) {
         try {
-          const response = await fetch(`http://${envApi}/topfive/user/${userdata._id}`, {
+          const response = await fetch(`${envApi}/topfive/user/${userdata._id}`, {
             method: 'GET',
             credentials: 'include',
             headers: { 'Content-Type': 'application/json' },
@@ -94,7 +97,7 @@ export default function UserProfile({ currUser }) {
     }
 
     try {
-      const response = await fetch(`http://${envApi}/user/follow/`, {
+      const response = await fetch(`${envApi}/user/follow/`, {
         method: 'POST',
         body: JSON.stringify({ targetUserId: userdata._id }),
         credentials: 'include',
@@ -123,7 +126,7 @@ export default function UserProfile({ currUser }) {
     }
 
     try {
-      const response = await fetch(`http://${envApi}/user/unfollow/`, {
+      const response = await fetch(`${envApi}/user/unfollow/`, {
         method: 'POST',
         body: JSON.stringify({ targetUserId: userdata._id }),
         credentials: 'include',

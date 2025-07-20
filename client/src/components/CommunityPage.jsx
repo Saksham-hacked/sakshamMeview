@@ -3,11 +3,12 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Search } from 'lucide-react';
 import { Card, CardContent } from "@/components/ui/card";
-import { envApi } from './getEnvironment';
+// import { envApi } from './getEnvironment';
 import { useState, useRef, useEffect } from 'react';
 import debounce from 'lodash.debounce';
 import { useNavigate } from 'react-router-dom';
 import Navbar from "./Navbar";
+import getEnvironment from "./getEnvironment";
 
 const CommunityPage = () => {
   const [searchQuery, setSearchQuery] = useState('');
@@ -16,13 +17,14 @@ const CommunityPage = () => {
   const [userData, setUserData] = useState(null);
   const [topReviewers, setTopReviewers] = useState([]);
   const navigate = useNavigate();
+  const envApi = getEnvironment();
 
   const handleSearch = useRef(
     debounce(async (query) => {
       setSearchQuery(query);
       if (!query) return;
       try {
-        const url = `http://${envApi}/user/search?query=${query}`;
+        const url = `${envApi}/user/search?query=${query}`;
         const res = await fetch(url);
         const response = await res.json();
         setUsers(response.data);
@@ -40,7 +42,7 @@ const CommunityPage = () => {
   useEffect(() => {
     const fetchUserData = async () => {
       try {
-        const response = await fetch(`http://${envApi}/user/`, {
+        const response = await fetch(`${envApi}/user/`, {
           method: 'GET',
           credentials: 'include',
           headers: { 'Content-Type': 'application/json' },
@@ -60,7 +62,7 @@ const CommunityPage = () => {
   useEffect(() => {
     const fetchTopReviewers = async () => {
       try {
-        const response = await fetch(`http://${envApi}/review/topReviewers`, {
+        const response = await fetch(`${envApi}/review/topReviewers`, {
           method: 'GET',
           credentials: 'include',
           headers: { 'Content-Type': 'application/json' },

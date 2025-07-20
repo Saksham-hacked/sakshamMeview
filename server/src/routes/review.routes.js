@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { addReview, getAllReviews, getReviewByUserId, getReviewByMovieId ,getTopReviewers,addLikeToReview,addCommentToReview,deleteCommentFromReview,addDislikeToReview} from "../controllers/review.controller.js";
+import { addReview, getAllReviews, getReviewByUserId, getReviewByMovieId ,getTopReviewers,addLikeToReview,addCommentToReview,deleteCommentFromReview,addDislikeToReview,deleteReview} from "../controllers/review.controller.js";
 import { verifyJWT } from "../middlewares/auth.middleware.js";      
 
 
@@ -11,6 +11,7 @@ router.route("/add").post(verifyJWT,addReview);
 router.route("/").get(getAllReviews);
 router.route("/userReview/:userId").get(verifyJWT,getReviewByUserId);
 router.route("/topReviewers").get(getTopReviewers);
+router.route("/delete/:reviewId").delete(verifyJWT,deleteReview);
 router.route("/:id").get(getReviewByMovieId);
 router.route("/like/:reviewId").post(verifyJWT,addLikeToReview);
 router.route("/comment/:reviewId").post(verifyJWT,addCommentToReview);

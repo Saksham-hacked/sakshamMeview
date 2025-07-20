@@ -2,10 +2,11 @@ import React, { useState, useEffect } from "react";
 import { Search } from "lucide-react";
 import Navbar from "./Navbar";
 import SearchBar from "./SearchBar";
-import { envApi } from "./getEnvironment";
+// import { envApi } from "./getEnvironment";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Card, CardContent } from "@/components/ui/card";
 import { ArrowUp, ArrowDown, Send, Star } from "lucide-react";
+import getEnvironment from "./getEnvironment";
 
 const MovieReviewsPage = () => {
   const [selectedMovie, setSelectedMovie] = useState(null);
@@ -14,6 +15,7 @@ const MovieReviewsPage = () => {
   const [userData, setUserData] = useState(null);
   const [commentText, setCommentText] = useState("");
   const [openComments, setOpenComments] = useState({});
+    const envApi = getEnvironment();
   const toggleComments = (reviewId) => {
     setOpenComments((prev) => ({
       ...prev,
@@ -25,7 +27,7 @@ const MovieReviewsPage = () => {
   useEffect(() => {
     const fetchUserData = async () => {
       try {
-        const response = await fetch(`http://${envApi}/user/`, {
+        const response = await fetch(`${envApi}/user/`, {
           method: "GET",
           credentials: "include",
           headers: { "Content-Type": "application/json" },
@@ -47,7 +49,7 @@ const MovieReviewsPage = () => {
       setLoadingReviews(true);
       try {
         const response = await fetch(
-          `http://${envApi}/review/${selectedMovie.id}`,
+          `${envApi}/review/${selectedMovie.id}`,
           {
             method: "GET",
             credentials: "include",
@@ -176,7 +178,7 @@ const MovieReviewsPage = () => {
     // Send the comment to the backend
     try {
       const response = await fetch(
-        `http://${envApi}/review/comment/${reviewId}`,
+        `${envApi}/review/comment/${reviewId}`,
         {
           method: "POST",
           credentials: "include",
@@ -250,7 +252,7 @@ const MovieReviewsPage = () => {
     );
 
     try {
-      const response = await fetch(`http://${envApi}/review/like/${reviewId}`, {
+      const response = await fetch(`${envApi}/review/like/${reviewId}`, {
         method: "POST",
         credentials: "include",
         headers: { "Content-Type": "application/json" },
@@ -334,7 +336,7 @@ const MovieReviewsPage = () => {
 
     try {
       const response = await fetch(
-        `http://${envApi}/review/dislike/${reviewId}`,
+        `${envApi}/review/dislike/${reviewId}`,
         {
           method: "POST",
           credentials: "include",

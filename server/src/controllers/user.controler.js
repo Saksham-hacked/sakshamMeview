@@ -79,13 +79,35 @@ const registerUser = asyncHandler(async (req, res) => {
         throw new ApiErrors(500,"Error creating user");
     }
 
-    res.status(201).json(
+
+      const { accessToken, refreshToken } = await generateAccesstokenAndRefreshtoken(user._id);
+
+    const options = {
+        httpOnly: true,
+        secure: true,
+        sameSite: "none",
+    };
+
+    // Return the response with the cookies set and the user data
+    return res.status(201).cookie("accessToken", accessToken, options).cookie("refreshToken", refreshToken, options).json(
         new ApiResponse(
             201,
-            "User created successfully",
-            createdUser
+            "User registered and logged in successfully",
+            {
+                user: createdUser,
+                accessToken,
+                refreshToken,
+            }
         )
     );
+
+    // res.status(201).json(
+    //     new ApiResponse(
+    //         201,
+    //         "User created successfully",
+    //         createdUser
+    //     )
+    // );
 
 
 

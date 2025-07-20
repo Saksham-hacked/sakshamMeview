@@ -223,6 +223,19 @@ const addDislikeToReview = asyncHandler(async (req, res) => {
   });
 });
 
+const deleteReview = asyncHandler(async (req, res) => {
+  const { reviewId } = req.params;
+  const review = await Review.findByIdAndDelete(reviewId);
+  if (!review) {
+    throw new ApiErrors(400, "Review not found");
+  }
+  res.status(200).json({
+    success: true,
+    message: "Review deleted successfully",
+    data: review
+  });
+});
+
     
 
 export {
@@ -234,6 +247,7 @@ export {
     addLikeToReview,
     addCommentToReview,
     deleteCommentFromReview,
-    addDislikeToReview
+    addDislikeToReview,
+    deleteReview
 
 }

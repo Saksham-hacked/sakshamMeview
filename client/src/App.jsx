@@ -7,7 +7,9 @@ import ProfilePage from './components/ProfilePage'
 import CommunityPage from './components/CommunityPage'
 import UserProfile from './components/UserProfile'
 
-import { envApi } from './components/getEnvironment'
+// import { envApi } from './components/getEnvironment'
+import getEnvironment from './components/getEnvironment'
+const envApi = getEnvironment();
 import MovieReviewsPage from './components/MovieReviewPage'
 
 
@@ -20,7 +22,7 @@ const App = () => {
   React.useEffect(() => {
     const fetchUser = async () => {
       try {
-        const response = await fetch(`http://${envApi}/user/checkLogin`, {
+        const response = await fetch(`${envApi}/user/checkLogin`, {
           method: 'GET',
           credentials: 'include',
           headers: {

@@ -211,7 +211,8 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Film, User, Mail, Lock, Ticket, ArrowRight, Clapperboard, Camera } from 'lucide-react';
-import { envApi } from './getEnvironment';
+// import { envApi } from './getEnvironment';
+import getEnvironment from './getEnvironment';
 
 const SignUp = () => {
   const [name, setName] = useState('');
@@ -220,6 +221,7 @@ const SignUp = () => {
   const [imageFile, setImageFile] = useState(null);
   const [error, setError] = useState('');
   const navigate = useNavigate();
+  const envApi = getEnvironment();
 
   const handleImageChange = (e) => {
     const file = e.target.files[0];
@@ -244,7 +246,7 @@ const SignUp = () => {
       formData.append('password', password);
       formData.append('profilePic', imageFile);
 
-      const res = await fetch(`http://${envApi}/user/register`, {
+      const res = await fetch(`${envApi}/user/register`, {
         method: 'POST',
         body: formData,
         credentials: 'include',
@@ -270,7 +272,7 @@ const SignUp = () => {
         throw new Error(data.message || 'Failed to create account');
       }
 
-      navigate('/user/signin');
+      navigate('/user/profile');
     } catch (err) {
       setError(err.message);
     }

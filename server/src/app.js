@@ -26,7 +26,7 @@ import topFiveRouter from './routes/topFive.routes.js';
 
 
 
-app.use("/api/v1/user",userRouter);
+app.use("/user",userRouter);
 app.use("/review", reviewRouter);
 app.use("/topfive", topFiveRouter);
 

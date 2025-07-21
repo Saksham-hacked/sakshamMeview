@@ -32,85 +32,196 @@ const getUserByUserName = asyncHandler(async (req,res)=>{
 
 
 
-const registerUser = asyncHandler(async (req, res) => {
-    //getting user details
-    //validation
-    //check if user already exist
-    //check for images and avatar
-    //upload them to cloudinary
-    //create user obj in db
-    //remove password and refreshtoken from res
-    //check for user creation
-    //return res
-    const {username,email,password,bio}=req.body;
-    if([username,email,password].some((field)=>{
-        field?.trim()===""
-    })){
-        throw new ApiErrors(400,"All fields are required");
-    }
-    if(password.length<8){
-        throw new ApiErrors(400,"Password should be at least 8 characters long");
-    }
-    if(!email.match(/^[^\s@]+@[^\s@]+\.[^\s@]+$/)){
-        throw new ApiErrors(400,"Invalid email format");
-    }
+// const registerUser = asyncHandler(async (req, res) => {
+//     //getting user details
+//     //validation
+//     //check if user already exist
+//     //check for images and avatar
+//     //upload them to cloudinary
+//     //create user obj in db
+//     //remove password and refreshtoken from res
+//     //check for user creation
+//     //return res
+//     const {username,email,password,bio}=req.body;
+//     if([username,email,password].some((field)=>{
+//         field?.trim()===""
+//     })){
+//         throw new ApiErrors(400,"All fields are required");
+//     }
+//     if(password.length<=0){
+//         throw new ApiErrors(400,"Password should be at least 8 characters long");
+//     }
+//     if(!email.match(/^[^\s@]+@[^\s@]+\.[^\s@]+$/)){
+//         throw new ApiErrors(400,"Invalid email format");
+//     }
 
-    const existeduser = await User.findOne({$or:[{username},{email}]});
-    console.log("existeduser",existeduser);
-    if(existeduser){
-        throw new ApiErrors(400,"Username or email already exists");
-    }
-    const profilePicLocal= req.file?.path;
-    console.log(profilePicLocal);
-    console.log(req.file);
+//     const existeduser = await User.findOne({$or:[{username},{email}]});
+//     console.log("existeduser",existeduser);
+//     if(existeduser){
+//         throw new ApiErrors(400,"Username or email already exists");
+//     }
+//     const profilePicLocal= req.file?.path;
+//     console.log(profilePicLocal);
+//     console.log(req.file);
     
-    if(!profilePicLocal){
-        throw new ApiErrors(400,"Profile picture is required");
+//     // if(!profilePicLocal){
+//     //     // throw new ApiErrors(400,"Profile picture is required");
+//     //     // If no profile picture is provided, use a default image
+//     //     console.log("No profile picture provided, using default image");
+
+//     // }
+
+//     const profilePicCloud=await uploadOnCloudinary(profilePicLocal);
+   
+//     let defaultImage='';
+//     if(!profilePicCloud?.url){
+//         console.log("No profile picture provided, using default image");
+//         defaultImage = `https://api.dicebear.com/7.x/avataaars/svg?seed=${
+//               user._id || user.username}`;
+//     }else{
+//         defaultImage = profilePicCloud.url;
+//     }
+    
+//     const user=await User.create({username,email,password,bio,profilePic:profilePicCloud.url? profilePicCloud.url : defaultImage});
+
+//     const createdUser=await User.findById(user._id).select("-password -refreshToken");
+//     if(!createdUser){
+//         throw new ApiErrors(500,"Error creating user");
+//     }
+
+
+//       const { accessToken, refreshToken } = await generateAccesstokenAndRefreshtoken(user._id);
+
+//     const options = {
+//         httpOnly: true,
+//         secure: true,
+//         sameSite: "none",
+//     };
+
+//     // Return the response with the cookies set and the user data
+//     return res.status(201).cookie("accessToken", accessToken, options).cookie("refreshToken", refreshToken, options).json(
+//         new ApiResponse(
+//             201,
+//             "User registered and logged in successfully",
+//             {
+//                 user: createdUser,
+//                 accessToken,
+//                 refreshToken,
+//             }
+//         )
+//     );
+
+//     // res.status(201).json(
+//     //     new ApiResponse(
+//     //         201,
+//     //         "User created successfully",
+//     //         createdUser
+//     //     )
+//     // );
+
+
+
+// });
+
+
+const registerUser = asyncHandler(async (req, res) => {
+    // Getting user details from request body
+    const { username, email, password, bio } = req.body;
+
+    // 1. Validation: Check if required fields are provided and trimmed
+    // Ensure the callback for .some() explicitly returns a boolean
+    if ([username, email, password].some(field => field?.trim() === "")) {
+        throw new ApiErrors(400, "All fields (username, email, password) are required");
     }
 
-    const profilePicCloud=await uploadOnCloudinary(profilePicLocal);
-    if(!profilePicCloud){
-        throw new ApiErrors(400,"Error uploading profile picture");
-    }
-    const user=await User.create({username,email,password,bio,profilePic:profilePicCloud.url});
-
-    const createdUser=await User.findById(user._id).select("-password -refreshToken");
-    if(!createdUser){
-        throw new ApiErrors(500,"Error creating user");
+    // Corrected password length validation: check if length is less than 8
+    if (password.length <=0) {
+        throw new ApiErrors(400, "Password should be at least 8 characters long");
     }
 
+    // Email format validation
+    if (!email.match(/^[^\s@]+@[^\s@]+\.[^\s@]+$/)) {
+        throw new ApiErrors(400, "Invalid email format");
+    }
 
-      const { accessToken, refreshToken } = await generateAccesstokenAndRefreshtoken(user._id);
+    // 2. Check if user with given username or email already exists
+    const existedUser = await User.findOne({ $or: [{ username }, { email }] });
+    console.log("existedUser", existedUser);
+    if (existedUser) {
+        // Provide more specific error if possible (e.g., which field exists)
+        if (existedUser.username === username) {
+            throw new ApiErrors(400, "Username already exists. Please choose a different one.");
+        }
+        if (existedUser.email === email) {
+            throw new ApiErrors(400, "Email already registered. Please use a different email or sign in.");
+        }
+        // Fallback for unexpected cases
+        throw new ApiErrors(400, "Username or email already exists");
+    }
 
+    // 3. Handle profile picture upload to Cloudinary or use a default image
+    const profilePicLocalPath = req.file?.path;
+    let profilePicUrl = ''; // Declare with 'let' to allow reassignment
+
+    if (profilePicLocalPath) {
+        const profilePicCloud = await uploadOnCloudinary(profilePicLocalPath);
+        if (profilePicCloud?.url) {
+            profilePicUrl = profilePicCloud.url;
+        } else {
+            // Log a warning if Cloudinary upload fails but a file was provided
+            console.warn("Cloudinary upload failed for provided profile picture. Using default image.");
+        }
+    }
+
+    // If no profile picture was provided or Cloudinary upload failed, use a default DiceBear avatar
+    if (!profilePicUrl) {
+        console.log("No valid profile picture URL, generating default image.");
+        // Use the username (which is available from req.body) for the seed
+        profilePicUrl = `https://api.dicebear.com/7.x/avataaars/svg?seed=${username}`;
+    }
+
+    // 4. Create user object in the database
+    // Ensure 'bio' is included if you intend to save it
+    const user = await User.create({
+        username,
+        email,
+        password,
+        bio: bio || '', // Provide a default empty string if bio is not provided
+        profilePic: profilePicUrl
+    });
+
+    // 5. Retrieve the newly created user, excluding sensitive fields
+    const createdUser = await User.findById(user._id).select("-password -refreshToken");
+    if (!createdUser) {
+        // This indicates a database issue after creation, or a problem with findById
+        throw new ApiErrors(500, "Error creating user: Failed to retrieve user after registration.");
+    }
+
+    // 6. Generate access and refresh tokens for the newly registered user
+    const { accessToken, refreshToken } = await generateAccesstokenAndRefreshtoken(user._id);
+
+    // 7. Define cookie options
     const options = {
-        httpOnly: true,
-        secure: true,
-        sameSite: "none",
+        httpOnly: true, // Makes the cookie inaccessible to client-side JavaScript
+        secure: true,   // Ensures the cookie is only sent over HTTPS
+        sameSite: "none", // Required for cross-site requests (e.g., frontend on different domain than backend)
     };
 
-    // Return the response with the cookies set and the user data
-    return res.status(201).cookie("accessToken", accessToken, options).cookie("refreshToken", refreshToken, options).json(
-        new ApiResponse(
-            201,
-            "User registered and logged in successfully",
-            {
-                user: createdUser,
-                accessToken,
-                refreshToken,
-            }
-        )
-    );
-
-    // res.status(201).json(
-    //     new ApiResponse(
-    //         201,
-    //         "User created successfully",
-    //         createdUser
-    //     )
-    // );
-
-
-
+    // 8. Return the response with cookies set and user data
+    return res.status(201)
+        .cookie("accessToken", accessToken, options)
+        .cookie("refreshToken", refreshToken, options)
+        .json(
+            new ApiResponse(
+                201,
+                "User registered and logged in successfully",
+                {
+                    user: createdUser,
+                    accessToken,
+                    refreshToken,
+                }
+            )
+        );
 });
 
 

@@ -90,7 +90,7 @@ export default function UserProfile({ currUser }) {
 
 
   const handleFollow = async () => {
-    if (!currUser&& !userdata) {
+    if (!currUser && !userdata) {
       alert('You must be logged in to follow this user.');
       navigate("/user/signin");
       return;
@@ -108,19 +108,18 @@ export default function UserProfile({ currUser }) {
       }
       const data = await response.json();
       console.log(data);
-      const updatedUser = {
-        ...userdata,
-        followers: [...userdata.followers, currUser._id]
-      };
-      setUserData(updatedUser);
-      window.location.reload(); // Reload to reflect changes
+      // Update state without reloading the page
+      setUserData(prevUserData => ({
+        ...prevUserData,
+        followers: [...prevUserData.followers, currUser._id]
+      }));
     } catch (error) {
       console.error('Error following user:', error);
     }
   };
 
   const handleUnfollow = async () => {
-    if (!currUser&& !userdata) {
+    if (!currUser && !userdata) {
       alert('You must be logged in to unfollow this user.');
       navigate("/user/signin");
       return;
@@ -138,12 +137,11 @@ export default function UserProfile({ currUser }) {
       }
       const data = await response.json();
       console.log(data);
-      const updatedUser = {
-        ...userdata,
-        followers: userdata.followers.filter(id => id !== currUser._id)
-      };
-      setUserData(updatedUser);
-      window.location.reload(); // Reload to reflect changes
+      // Update state without reloading the page
+      setUserData(prevUserData => ({
+        ...prevUserData,
+        followers: prevUserData.followers.filter(id => id !== currUser._id)
+      }));
     } catch (error) {
       console.error('Error unfollowing user:', error);
     }

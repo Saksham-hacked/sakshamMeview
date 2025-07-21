@@ -1119,7 +1119,7 @@ export default function ProfilePage({ currUser }) {
 
   return (
     <div className="min-h-screen bg-[#121212] text-white font-sans">
-      <Navbar currUser={currUser} />
+      <Navbar currUser={userData} />
 
       {/* Profile Header */}
       <div className="container mx-auto px-4 py-8 md:py-12 lg:px-8 max-w-7xl">

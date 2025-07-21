@@ -6,10 +6,12 @@ import CTASection from './CTASection'
 import Footer from './Footer'
 
 
-const LandingPage = () => {
+
+
+const LandingPage = ({currUser}) => {
   return (
     <div className="min-h-screen bg-crate-dark flex flex-col">
-    <Navbar />
+    <Navbar currUser={currUser} />
     <main>
       
       <HeroSection />

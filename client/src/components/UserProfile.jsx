@@ -213,7 +213,7 @@ export default function UserProfile({ currUser }) {
           </div>
           <div className="flex-1 text-center md:text-left">
             <h1 className="text-4xl lg:text-5xl font-bold mb-2 tracking-wide text-yellow-400">{userdata.username}</h1>
-            <p className="text-md text-gray-400 mb-6">A movie fan on CineSphere.</p>
+            <p className="text-md text-gray-400 mb-6">A movie fan on a mission.</p>
             <div className="flex justify-center md:justify-start space-x-8">
               <div className="text-center">
                 <p className="text-2xl font-bold text-yellow-400">{userReviews.length}</p>

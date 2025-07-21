@@ -58,6 +58,9 @@ const Navbar = ({ currUser }) => {
             <span className="text-gray-400 text-xs">Rate. Review. Discover.</span>
           </div>
         </a>
+
+        {/* Mobile Navigation */}
+        
         
         {/* Desktop Navigation */}
         <div className="hidden md:flex items-center space-x-6">
@@ -73,6 +76,10 @@ const Navbar = ({ currUser }) => {
             <Popcorn className="h-4 w-4 mr-1 text-yellow-400" />
             <span>Community</span>
           </NavLink>
+
+          
+
+          
           
           {/* Auth Buttons */}
           <div className="ml-4 flex items-center space-x-2">
@@ -97,9 +104,29 @@ const Navbar = ({ currUser }) => {
             )}
           </div>
         </div>
+
+
+
+
+         
         
         {/* Mobile Menu Button */}
-        <div className="md:hidden">
+        <div className="md:hidden flex items-center">
+          <div className="flex md:hidden items-center space-x-3" >
+
+          <NavLink to="/review" className="text-gray-400 hover:text-yellow-400 transition-colors flex items-center">
+            <Star className="h-4 w-4 mr-1 text-yellow-400" />
+            {/* <span>Reviews</span> */}
+          </NavLink>
+          {/* <a href="#" className="text-gray-400 hover:text-yellow-400 transition-colors flex items-center">
+            <Film className="h-4 w-4 mr-1 text-yellow-400" />
+            <span>Features</span>
+            </a> */}
+          <NavLink to="/community" className="text-gray-400 hover:text-yellow-400 transition-colors flex items-center">
+            <Popcorn className="h-4 w-4 mr-1 text-yellow-400" />
+            {/* <span>Community</span> */}
+          </NavLink>
+            </div>
           <Button variant="ghost" size="icon" onClick={handleMenuToggle} className="text-gray-400 hover:bg-gray-800">
             <span className="sr-only">Toggle menu</span>
             {isMenuOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}

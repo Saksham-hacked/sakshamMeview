@@ -17,7 +17,7 @@ const Footer = () => {
           </div>
 
           {/* Social Media Links */}
-          <div className="flex space-x-6 mb-12">
+          {/* <div className="flex space-x-6 mb-12">
             <a href="#" aria-label="Facebook" className="text-gray-400 hover:text-yellow-400 transition-colors">
               <Facebook className="h-6 w-6" />
             </a>
@@ -27,7 +27,7 @@ const Footer = () => {
             <a href="#" aria-label="Instagram" className="text-gray-400 hover:text-yellow-400 transition-colors">
               <Instagram className="h-6 w-6" />
             </a>
-          </div>
+          </div> */}
           
           {/* Fun Facts Section */}
           <div className="mb-12 border-t border-zinc-800 pt-10">

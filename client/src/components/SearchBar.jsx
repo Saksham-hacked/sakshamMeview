@@ -69,6 +69,7 @@ export default function MovieSearchBar({setSelectedMovie}) {
 
   return (
     <div className="search-container  relative w-75% ">
+      <p className="text-xs text-yellow-500">* Please switch to your mobile network</p>
       <input
         type="text"
         placeholder="Search movies..."

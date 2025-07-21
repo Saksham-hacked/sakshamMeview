@@ -177,7 +177,7 @@ const registerUser = asyncHandler(async (req, res) => {
     if (!profilePicUrl) {
         console.log("No valid profile picture URL, generating default image.");
         // Use the username (which is available from req.body) for the seed
-        profilePicUrl = `https://api.dicebear.com/7.x/avataaars/svg?seed=${username}`;
+        profilePicUrl = `https://api.dicebear.com/9.x/lorelei-neutral/svg?seed=${username}`;
     }
 
     // 4. Create user object in the database

@@ -845,6 +845,8 @@ export default function ProfilePage({ currUser }) {
       if (currUser) {
         fetchedUserData = currUser;
         setUserData(currUser);
+        setLoading(false);
+        console.log("Using current user data from props:", currUser);
       } else {
         // 2. If not, fetch user data from the API
         try {
@@ -869,6 +871,7 @@ export default function ProfilePage({ currUser }) {
           return;
         }
       }
+      console.log("Fetched User Data:", fetchedUserData);
 
       // 3. Fetch reviews and lists using the user data
       if (fetchedUserData) {
@@ -1439,7 +1442,7 @@ export default function ProfilePage({ currUser }) {
                             key={i}
                             className="text-center flex flex-col items-center"
                           >
-                            <div className="w-16 h-16 rounded-full border-2 border-yellow-400/30 flex items-center justify-center bg-zinc-800 text-lg text-yellow-400">
+                            <div onClick={() => navigate(`/user/profile/${u.username}`)} className="w-16 h-16 rounded-full  border-2 border-yellow-400/30 flex items-center justify-center bg-zinc-800 text-lg text-yellow-400">
                               {u.profilePic ? (
                                 <img
                                   src={u.profilePic}
@@ -1448,7 +1451,7 @@ export default function ProfilePage({ currUser }) {
                                 />
                               ) : (
                                 <span>
-                                  {u.username.charAt(0).toUpperCase()}
+                                  {u.username?.charAt(0).toUpperCase()}
                                 </span>
                               )}
                             </div>

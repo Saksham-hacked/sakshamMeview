@@ -16,7 +16,7 @@ const generateAccesstokenAndRefreshtoken = async (userId)=>{
 
 const getUserByUserName = asyncHandler(async (req,res)=>{
     const {username} = req.params;
-    const user = await User.findOne({username},"-password -refreshToken");
+    const user = await User.findOne({username},"-password -refreshToken").populate("followers following","-password -refreshToken");
     if(!user){
         throw new ApiErrors(400,"User not found");
     }

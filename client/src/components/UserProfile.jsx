@@ -36,6 +36,7 @@ export default function UserProfile({ currUser }) {
         }
         const data = await response.json();
         setUserData(data.data);
+        console.log("User data fetched:", data.data);
       } catch (error) {
         console.error('Error fetching user data:', error);
         setUserData(null);
@@ -111,7 +112,7 @@ export default function UserProfile({ currUser }) {
       // Update state without reloading the page
       setUserData(prevUserData => ({
         ...prevUserData,
-        followers: [...prevUserData.followers, currUser._id]
+        followers: [...prevUserData.followers, currUser]
       }));
     } catch (error) {
       console.error('Error following user:', error);
@@ -140,7 +141,7 @@ export default function UserProfile({ currUser }) {
       // Update state without reloading the page
       setUserData(prevUserData => ({
         ...prevUserData,
-        followers: prevUserData.followers.filter(id => id !== currUser._id)
+        followers: prevUserData.followers.filter(follower => follower._id !== currUser._id)
       }));
     } catch (error) {
       console.error('Error unfollowing user:', error);
@@ -192,8 +193,18 @@ export default function UserProfile({ currUser }) {
       </div>
     );
   }
+  if(!currUser && !userdata) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-zinc-950 text-white">
+        <h1 className="text-2xl font-bold">You must be logged in to view this profile</h1>
+      </div>
+    );
+  }
+  console.log("Current user:", currUser);
+  console.log("User data:", userdata);
 
-  const isFollowing = userdata.followers.includes(currUser?._id);
+  // const isFollowing = userdata.followers.includes(currUser?._id);
+  const isFollowing = userdata.followers.some(follower => follower._id === currUser?._id);
   const isCurrentUserProfile = currUser?._id === userdata._id;
 
   return (
@@ -367,11 +378,11 @@ export default function UserProfile({ currUser }) {
                         {arr.length > 0 ? (
                           arr.map((u, i) => (
                             <div key={i} className="text-center flex flex-col items-center">
-                              <div className="w-16 h-16 rounded-full border-2 border-yellow-400/30 flex items-center justify-center bg-zinc-800 text-lg text-yellow-400">
+                              <div onClick={() => navigate(`/user/profile/${u.username}`)} className="w-16 h-16 rounded-full border-2 border-yellow-400/30 flex items-center justify-center bg-zinc-800 text-lg text-yellow-400">
                                 {u.profilePic ? (
                                   <img src={u.profilePic} alt={u.username} className="w-full h-full object-cover rounded-full" />
                                 ) : (
-                                  <span>{u.username.charAt(0).toUpperCase()}</span>
+                                  <span>{u.username?.charAt(0).toUpperCase()}</span>
                                 )}
                               </div>
                               <p className="text-sm mt-2 truncate max-w-full font-medium text-gray-400">

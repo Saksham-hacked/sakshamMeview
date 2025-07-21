@@ -11,7 +11,7 @@ export const verifyJWT = asyncHandler(async (req, res, next) => {
        throw new ApiErrors(401,"no token in cookie")
     }
     const decodedToken=jwt.verify(token,process.env.ACCESS_TOKEN_SECRET)
-    const user =await User.findById(decodedToken?.id).select("-password -refreshToken")
+    const user =await User.findById(decodedToken?.id).select("-password -refreshToken").populate("followers following","-password -refreshToken");
      if(!user){
          throw new ApiErrors(401,"no user found ")
      }

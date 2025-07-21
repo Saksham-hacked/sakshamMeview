@@ -797,7 +797,7 @@
 // }
 
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect , useRef } from "react";
 import {
   Star,
   User as UserIcon,
@@ -806,6 +806,7 @@ import {
   Edit,
   X,
   Trash2,
+  Camera
 } from "lucide-react";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
@@ -830,6 +831,10 @@ export default function ProfilePage({ currUser }) {
   const [listMovies, setListMovies] = useState([]);
   const navigate = useNavigate();
   const envApi = getEnvironment();
+
+
+   const fileInputRef = useRef(null);
+  const [isUploading, setIsUploading] = useState(false);
 
   // Unified useEffect to handle all data fetching
   useEffect(() => {
@@ -1108,6 +1113,53 @@ export default function ProfilePage({ currUser }) {
     return <div className="flex">{stars}</div>;
   };
 
+
+  const handleProfilePicClick = () => {
+    fileInputRef.current.click(); // Programmatically click the hidden file input
+  };
+
+  const handleFileChange = async (event) => {
+    const file = event.target.files[0];
+    if (!file) {
+      return;
+    }
+
+    setIsUploading(true);
+    const formData = new FormData();
+    formData.append("profilePic", file); // 'profilePic' should match your server's expected field name
+
+    try {
+      const response = await fetch(`${envApi}/user/uploadProfilePicture`, { // Adjust API endpoint
+        method: "POST",
+        credentials: "include",
+        body: formData, // No Content-Type header needed for FormData; browser sets it
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || "Failed to upload profile picture.");
+      }
+
+      const data = await response.json();
+      console.log("Profile picture updated:", data);
+      // Assuming your backend returns the updated user data or the new profilePic URL
+      setUserData((prev) => ({ ...prev, profilePic: data.data.profilePicUrl })); // Update local state
+      // alert("Profile picture updated successfully!");
+    } catch (error) {
+      console.error("Error uploading profile picture:", error);
+      alert(error.message || "Failed to upload profile picture.");
+    } finally {
+      setIsUploading(false);
+      // Clear the file input value so that selecting the same file again triggers change event
+      event.target.value = null;
+      fileInputRef.current.value = null;
+      // setUserData((prev) => ({ ...prev, profilePic: data.profilePic }));
+       // Reset the profilePic to trigger re-render
+      // window.location.reload();
+    }
+  };
+
+
   // Render loading state
   if (loading || !userData) {
     return (
@@ -1125,7 +1177,7 @@ export default function ProfilePage({ currUser }) {
       <div className="container mx-auto px-4 py-8 md:py-12 lg:px-8 max-w-7xl">
         {/* Avatar */}
         <div className="flex flex-col md:flex-row mt-20 items-center md:items-start gap-8 mb-12 border-b border-gray-800 pb-8">
-          <div className="w-28 h-28 lg:w-40 lg:h-40 rounded-full border-2 border-yellow-400/50 flex-shrink-0 overflow-hidden flex items-center justify-center bg-zinc-800 text-yellow-400 text-3xl">
+          {/* <div className="w-28 h-28 lg:w-40 lg:h-40 rounded-full border-2 border-yellow-400/50 flex-shrink-0 overflow-hidden flex items-center justify-center bg-zinc-800 text-yellow-400 text-3xl">
             {userData.profilePic ? (
               <img
                 src={userData.profilePic}
@@ -1135,6 +1187,39 @@ export default function ProfilePage({ currUser }) {
             ) : (
               <span>{userData.username.charAt(0).toUpperCase()}</span>
             )}
+          </div> */}
+          <div className="relative w-28 h-28 lg:w-40 lg:h-40 rounded-full border-2 border-yellow-400/50 flex-shrink-0 overflow-hidden flex items-center justify-center bg-zinc-800 text-yellow-400 text-3xl group">
+            {userData.profilePic ? (
+              <img
+                src={userData.profilePic}
+                alt={userData.username}
+                className="w-full h-full object-cover"
+
+              />
+            ) : (
+              <span>{userData.username.charAt(0).toUpperCase()}</span>
+            )}
+
+            {/* Edit Profile Picture Button */}
+            <button
+              onClick={handleProfilePicClick}
+              className="absolute inset-0 flex items-center justify-center bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity duration-300 rounded-full cursor-pointer"
+              title="Change Profile Picture"
+              disabled={isUploading}
+            >
+              {isUploading ? (
+                <span className="animate-spin h-6 w-6 border-2 border-white border-t-yellow-400 rounded-full"></span> // Simple spinner
+              ) : (
+                <Camera className="h-8 w-8 text-yellow-400" />
+              )}
+              <input
+                type="file"
+                ref={fileInputRef}
+                onChange={handleFileChange}
+                accept="image/*"
+                className="hidden" // Hide the default file input
+              />
+            </button>
           </div>
           <div className="flex-1 text-center md:text-left">
             <h1 className="text-4xl lg:text-5xl font-bold mb-2 tracking-wide text-yellow-400">

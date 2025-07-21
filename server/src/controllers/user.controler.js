@@ -225,6 +225,81 @@ const registerUser = asyncHandler(async (req, res) => {
 });
 
 
+const updateProfilePicture = asyncHandler(async (req, res) => {
+  // 1. Get user ID from authenticated request
+  // Assumes your authentication middleware populates req.user
+  const userId = req.user?._id; 
+
+  if (!userId) {
+    throw new ApiErrors(401, "Unauthorized: User not authenticated.");
+  }
+
+  // 2. Check if a file was uploaded by Multer
+  // Multer stores file info in req.file
+  const profilePicLocalPath = req.file?.path;
+    console.log("Profile picture local path:", profilePicLocalPath);
+
+  if (!profilePicLocalPath) {
+    throw new ApiErrors(400, "No profile picture file provided.");
+  }
+
+  // 3. Upload the new profile picture to Cloudinary
+  const newProfilePicCloudinary = await uploadOnCloudinary(profilePicLocalPath);
+
+  if (!newProfilePicCloudinary || !newProfilePicCloudinary.url) {
+    // If Cloudinary upload failed, throw an error.
+    // The uploadOnCloudinary function should handle local file cleanup in its catch block.
+    throw new ApiErrors(500, "Failed to upload profile picture to Cloudinary.");
+  }
+
+  const newProfilePicUrl = newProfilePicCloudinary.url;
+
+  // 4. Find the user and update their profile picture URL in the database
+  const user = await User.findById(userId);
+
+  if (!user) {
+    // This case should ideally not happen if authentication is working correctly
+    throw new ApiErrors(404, "User not found.");
+  }
+
+  // Optional: Delete old profile picture from Cloudinary if it's not a default one
+  // This requires you to store the public_id in your User model, not just the URL
+  /*
+  if (user.profilePic && !user.profilePic.includes("dicebear") && !user.profilePic.includes("default-avatar")) {
+    const oldPublicId = user.profilePic.split('/').pop().split('.')[0]; // Extract public_id from URL
+    if (oldPublicId) {
+      // Assuming you have a Cloudinary delete utility or call cloudinary.uploader.destroy directly
+      // await cloudinary.uploader.destroy(oldPublicId);
+      // console.log(`Old profile picture ${oldPublicId} deleted from Cloudinary.`);
+    }
+  }
+  */
+
+  // Update the user's profile picture
+  user.profilePic = newProfilePicUrl;
+  await user.save({ validateBeforeSave: false }); // ValidateBeforeSave: false is okay here as we only change profilePic
+
+  // 5. Send success response with the new profile picture URL
+  return res.status(200).json(
+    new ApiResponse(
+      200,
+      "Profile picture updated successfully!",
+      {
+        profilePicUrl: newProfilePicUrl, // Send the new URL
+        // You might send updated user object if your frontend needs it
+        user: {
+            _id: user._id,
+            username: user.username,
+            profilePic: user.profilePic,
+            // ... other fields you want to return
+        }
+      }
+    )
+  );
+});
+
+
+
 
 
 const loginUser = asyncHandler(async (req,res)=>{
@@ -454,5 +529,6 @@ const unfollowUser = asyncHandler(async (req, res) => {
 
 
 export {
-    registerUser,loginUser,logoutUser,refreshAccessToken,getCurrentUSer,userSearch,followUser,unfollowUser,getUserByUserName
+    registerUser,loginUser,logoutUser,refreshAccessToken,getCurrentUSer,userSearch,followUser,unfollowUser,getUserByUserName,updateProfilePicture
+
 };

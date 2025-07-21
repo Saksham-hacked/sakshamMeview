@@ -90,7 +90,7 @@ export default function UserProfile({ currUser }) {
 
 
   const handleFollow = async () => {
-    if (!currUser) {
+    if (!currUser&& !userdata) {
       alert('You must be logged in to follow this user.');
       navigate("/user/signin");
       return;
@@ -113,13 +113,14 @@ export default function UserProfile({ currUser }) {
         followers: [...userdata.followers, currUser._id]
       };
       setUserData(updatedUser);
+      window.location.reload(); // Reload to reflect changes
     } catch (error) {
       console.error('Error following user:', error);
     }
   };
 
   const handleUnfollow = async () => {
-    if (!currUser) {
+    if (!currUser&& !userdata) {
       alert('You must be logged in to unfollow this user.');
       navigate("/user/signin");
       return;
@@ -142,6 +143,7 @@ export default function UserProfile({ currUser }) {
         followers: userdata.followers.filter(id => id !== currUser._id)
       };
       setUserData(updatedUser);
+      window.location.reload(); // Reload to reflect changes
     } catch (error) {
       console.error('Error unfollowing user:', error);
     }

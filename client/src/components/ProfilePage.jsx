@@ -815,7 +815,7 @@ import SearchBar from "./SearchBar";
 import getEnvironment from "./getEnvironment";
 import { useNavigate } from "react-router-dom";
 
-export default function ProfilePage({ currUser }) {
+export default function ProfilePage({ currUser, setUserLoading}) {
   const [activeTab, setActiveTab] = useState("reviews");
   const [userData, setUserData] = useState(null);
   const [reviewDialogDisplay, setReviewDialogDisplay] = useState(false);
@@ -1164,7 +1164,7 @@ export default function ProfilePage({ currUser }) {
 
 
   // Render loading state
-  if (loading || !userData) {
+  if (loading || !userData ) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-[#121212] text-white">
         <div>Loading...</div>

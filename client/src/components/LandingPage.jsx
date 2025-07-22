@@ -9,7 +9,12 @@ import Footer from './Footer'
 
 
 const LandingPage = ({currUser}) => {
+
+   
+
+
   return (
+
     <div className="min-h-screen bg-crate-dark flex flex-col">
     <Navbar currUser={currUser} />
     <main>

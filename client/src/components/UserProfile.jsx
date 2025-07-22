@@ -7,7 +7,7 @@ import Footer from '@/components/Footer';
 // import { envApi } from './getEnvironment';
 import getEnvironment from './getEnvironment';
 
-export default function UserProfile({ currUser }) {
+export default function UserProfile({ currUser, userLoading }) {
   const navigate = useNavigate();
   const { username } = useParams();
 
@@ -21,6 +21,9 @@ export default function UserProfile({ currUser }) {
   const [listDialogDisplay, setListDialogDisplay] = useState(false);
   const [selectedList, setSelectedList] = useState(null);
   const envApi = getEnvironment();
+
+
+ 
 
 
   // Fetch user data from the API
@@ -45,7 +48,7 @@ export default function UserProfile({ currUser }) {
       }
     };
     fetchUserData();
-  }, [username]);
+  }, [username,envApi]);
 
   // Fetch user reviews when userdata is available
   useEffect(() => {
@@ -66,7 +69,7 @@ export default function UserProfile({ currUser }) {
       }
     };
     getUserReviews();
-  }, [userdata]);
+  }, [userdata, userLoading,username]);
 
   // Fetch user top lists when userdata is available
   useEffect(() => {
@@ -87,11 +90,14 @@ export default function UserProfile({ currUser }) {
       }
     };
     getUserLists();
-  }, [userdata]);
+  }, [userdata, userLoading,username]);
 
 
   const handleFollow = async () => {
-    if (!currUser && !userdata) {
+    console.log("Current user:", currUser);
+    console.log("User data:", userdata);
+
+    if (!currUser) {
       alert('You must be logged in to follow this user.');
       navigate("/user/signin");
       return;
@@ -178,7 +184,7 @@ export default function UserProfile({ currUser }) {
     setSelectedList(null);
   };
 
-  if (loading) {
+  if (loading || !userdata || userLoading || !currUser) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-zinc-950 text-white">
         <div>Loading...</div>
@@ -193,7 +199,7 @@ export default function UserProfile({ currUser }) {
       </div>
     );
   }
-  if(!currUser && !userdata) {
+  if(!currUser) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-zinc-950 text-white">
         <h1 className="text-2xl font-bold">You must be logged in to view this profile</h1>

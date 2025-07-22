@@ -18,6 +18,7 @@ import MovieReviewsPage from './components/MovieReviewPage'
 const App = () => {
 
   const [currUser, setCurrUser] = React.useState(null);
+  const [userLoading, setUserLoading] = React.useState(true);
   
   React.useEffect(() => {
     const fetchUser = async () => {
@@ -35,8 +36,11 @@ const App = () => {
         const data = await response.json();
         console.log("at app.jsx" ,data);
         setCurrUser(data.data);
+        setUserLoading(false);
       } catch (error) {
         console.error('Error fetching user data:', error);
+        setCurrUser(null);
+        setUserLoading(false);
       }
     };
       
@@ -50,14 +54,14 @@ const App = () => {
     
 
    <Routes>
-    <Route path='/'element={<LandingPage currUser={currUser} />}></Route>
+    <Route path='/'element={<LandingPage currUser={currUser} userLoading={userLoading} />}></Route>
     <Route path='review' element ={<MovieReviewsPage/>}></Route>
     <Route path='community' element={<CommunityPage />}></Route>
     <Route path='/user'>
         <Route path='signin' element={<SigninPage />}></Route>
         <Route path='signup' element={<SignupPage />}></Route>
-        <Route path='profile' element={<ProfilePage  currUser={currUser} />}></Route>
-        <Route path='profile/:username' element={<UserProfile currUser={currUser} />}></Route>
+        <Route path='profile' element={<ProfilePage  currUser={currUser} userLoading={userLoading}  />}></Route>
+        <Route path='profile/:username' element={<UserProfile currUser={currUser} userLoading={userLoading}  />}></Route>
     </Route>
    </Routes>
    

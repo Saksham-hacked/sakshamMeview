@@ -72,7 +72,7 @@ const Navbar = ({ currUser }) => {
             <Film className="h-4 w-4 mr-1 text-yellow-400" />
             <span>Features</span>
           </a> */}
-          <NavLink to="/community" className="text-gray-400 hover:text-yellow-400 transition-colors flex items-center">
+          <NavLink to={isLoggedIn ? "/community" : "/user/signin"} className="text-gray-400 hover:text-yellow-400 transition-colors flex items-center">
             <Popcorn className="h-4 w-4 mr-1 text-yellow-400" />
             <span>Community</span>
           </NavLink>

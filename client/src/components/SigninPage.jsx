@@ -86,7 +86,9 @@ const SignIn = () => {
         setErrorMessage(data.message || 'Login failed.');
       }
     } catch (error) {
-      console.error("Login failed:", error.message);
+      
+      console.error("Error during login:");
+      console.error("Login failed:",  error);
       setErrorMessage(error.message || 'An unexpected error occurred. Please try again.');
     } finally {
       setIsLoading(false);

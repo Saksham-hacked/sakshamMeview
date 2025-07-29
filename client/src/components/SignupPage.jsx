@@ -32,6 +32,18 @@ const SignUp = () => {
     //   setError('Please choose a profile image.');
     //   return;
     // }
+    if (!name || !email || !password) {
+      setError('All fields are required.');
+      return;
+    }
+    if (!/\S+@\S+\.\S+/.test(email)) {
+      setError('Please enter a valid email address.');
+      return;
+    }
+    if (password.length < 4) {
+      setError('Password must be at least 4 characters long.');
+      return;
+    }
 
     try {
       const formData = new FormData();

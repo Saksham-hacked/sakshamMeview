@@ -184,7 +184,7 @@ export default function UserProfile({ currUser, userLoading }) {
     setSelectedList(null);
   };
 
-  if (loading || !userdata || userLoading || !currUser) {
+  if (loading || !userdata  || !currUser) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-zinc-950 text-white">
         <div>Loading...</div>

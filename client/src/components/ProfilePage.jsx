@@ -1613,7 +1613,10 @@ export default function ProfilePage({ currUser, setUserLoading}) {
                 Cancel
               </button>
               <button
-                onClick={handleCreateListSubmit}
+                onClick={()=>{
+                  handleCreateListSubmit();
+                  setCreateListDialogDisplay(false);
+                }}
                 className="bg-yellow-400 text-black font-semibold hover:bg-yellow-500 transition-colors rounded-md px-4 py-2"
               >
                 Create List

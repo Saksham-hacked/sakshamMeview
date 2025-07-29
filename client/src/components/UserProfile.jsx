@@ -184,36 +184,44 @@ export default function UserProfile({ currUser, userLoading }) {
     setSelectedList(null);
   };
 
+  
+
+  // if (!userdata) {
+  //   return (
+  //     <div className="min-h-screen flex items-center justify-center bg-zinc-950 text-white">
+  //       <h1 className="text-2xl font-bold">User not found</h1>
+  //     </div>
+  //   );
+  // }
+  // if(!currUser) {
+  //   return (
+  //     <div className="min-h-screen flex items-center justify-center bg-zinc-950 text-white">
+  //       <h1 className="text-2xl font-bold">You must be logged in to view this profile</h1>
+  //     </div>
+  //   );
+  // }
+  // console.log("Current user:", currUser);
+  // console.log("User data:", userdata);
+
+  // // const isFollowing = userdata.followers.includes(currUser?._id);
+  // const isFollowing = userdata.followers.some(follower => follower._id === currUser?._id);
+  // const isCurrentUserProfile = currUser?._id === userdata._id;
   if (loading || !userdata  || !currUser) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-zinc-950 text-white">
         <div>Loading...</div>
       </div>
     );
-  }
-
-  if (!userdata) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-zinc-950 text-white">
-        <h1 className="text-2xl font-bold">User not found</h1>
-      </div>
-    );
-  }
-  if(!currUser) {
+  }else if (userdata && !currUser) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-zinc-950 text-white">
         <h1 className="text-2xl font-bold">You must be logged in to view this profile</h1>
       </div>
     );
-  }
-  console.log("Current user:", currUser);
-  console.log("User data:", userdata);
-
-  // const isFollowing = userdata.followers.includes(currUser?._id);
-  const isFollowing = userdata.followers.some(follower => follower._id === currUser?._id);
+  } else if (userdata && currUser) {
+    const isFollowing = userdata.followers.some(follower => follower._id === currUser?._id);
   const isCurrentUserProfile = currUser?._id === userdata._id;
-
-  return (
+    return (
     <div className="min-h-screen bg-zinc-950 text-white font-sans">
       <Navbar currUser={currUser} />
 
@@ -251,6 +259,7 @@ export default function UserProfile({ currUser, userLoading }) {
                 {isFollowing ? (
                   <button
                     onClick={handleUnfollow}
+                    disabled={userLoading}
                     className="bg-gray-700 text-white font-semibold hover:bg-gray-600 transition-colors rounded-full px-6 py-3 shadow-lg flex items-center"
                   >
                     <UserIcon className="mr-2 h-4 w-4" /> Following
@@ -258,7 +267,9 @@ export default function UserProfile({ currUser, userLoading }) {
                 ) : (
                   <button
                     onClick={handleFollow}
-                    className="bg-yellow-400 text-black font-semibold hover:bg-yellow-500 transition-colors rounded-full px-6 py-3 shadow-lg flex items-center"
+                    disabled={userLoading }
+
+                    className="bg-yellow-400 text-black font-semibold hover:bg-yellow-500 transition-colors rounded-full px-6 py-3 shadow-lg flex items-center "
                   >
                     <UserIcon className="mr-2 h-4 w-4" /> Follow
                   </button>
@@ -440,4 +451,7 @@ export default function UserProfile({ currUser, userLoading }) {
       <Footer />
     </div>
   );
+  }
+  
+  
 }

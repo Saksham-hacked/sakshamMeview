@@ -8,6 +8,9 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import getEnvironment from './getEnvironment';
 
+import { motion } from 'framer-motion';
+import { useRef } from 'react'; 
+
 import { Film, Mail, Lock, ArrowRight, Clapperboard, Loader2 } from 'lucide-react';
 
 const SignIn = () => {
@@ -95,6 +98,8 @@ const SignIn = () => {
     }
   };
 
+  const videoRef = useRef<HTMLVideoElement | null>(null);
+
   return (
     <div className="min-h-screen bg-zinc-950 text-white font-sans flex flex-col">
       <div className="fixed w-full z-50 bg-black/70 backdrop-blur-md border-b border-yellow-400/20 py-4">
@@ -110,7 +115,34 @@ const SignIn = () => {
       </div>
 
       <div className="flex-1 flex items-center justify-center pt-20 pb-12">
-        <div className="w-full max-w-md p-8 space-y-8 bg-zinc-900/80 backdrop-blur-lg rounded-lg border border-yellow-400/20 shadow-xl shadow-yellow-400/10">
+
+          <div className="absolute inset-0">
+        <motion.video
+          ref={videoRef}
+          autoPlay
+          loop
+          muted
+          playsInline
+          className="absolute inset-0 w-full h-full object-cover"
+          animate={{ scale: [1, 1, 1]  }}
+          transition={{ duration: 15,speed:0.1, ease: 'easeInOut', repeat: Infinity }}
+          onLoadedMetadata={() => {
+    if (videoRef.current) {
+      videoRef.current.playbackRate = 0.1; // 🔹 Control speed properly here
+    }
+  }}
+
+        >
+          <source src="/videos/bg_video_3.mp4" type="video/mp4" />
+          Your browser does not support the video tag.
+        </motion.video>
+        <div className="absolute inset-0 bg-gradient-to-b from-black/60 via-black/80 to-black/95 backdrop-blur-xs" />
+      </div>
+      <div/>
+
+
+
+        <div className="w-full max-w-md p-8 space-y-8 ">
           
           <div className="text-center relative z-10">
             <Film className="mx-auto h-12 w-12 text-yellow-400" />
